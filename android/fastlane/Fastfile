@@ -1,0 +1,24 @@
+default_platform(:android)
+
+platform :android do
+
+  desc "Build release .aab"
+  lane :build do
+    sh("flutter clean")
+    sh("flutter pub get")
+    sh("flutter build appbundle --release")
+  end
+
+  desc "Deploy to Internal track on Google Play"
+  lane :internal do
+    build
+    upload_to_play_store(
+      track: "internal",
+      aab: "build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+end

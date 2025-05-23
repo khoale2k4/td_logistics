@@ -29,10 +29,20 @@ class _MySearchBarState extends State<MySearchBar> {
   List<dynamic> _searchSuggestions = [];
   final String _apiKey = ggApiKey;
   bool _isLoading = false;
+  bool _showSuggestions = false;
 
   Future<void> _getSearchSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchSuggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
+      _showSuggestions = true;
     });
 
     try {
@@ -43,7 +53,7 @@ class _MySearchBarState extends State<MySearchBar> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          _searchSuggestions = data['predictions'];
+          _searchSuggestions = data['predictions'] ?? [];
         });
       } else {
         print("Error fetching suggestions: ${response.body}");
@@ -57,27 +67,61 @@ class _MySearchBarState extends State<MySearchBar> {
     }
   }
 
+  void _performSearch() {
+    setState(() {
+      _searchSuggestions = [];
+      _showSuggestions = false;
+    });
+    widget.onTap();
+  }
+
+  void _selectSuggestion(String suggestion) {
+    widget.controller.text = suggestion;
+    setState(() {
+      _searchSuggestions = [];
+      _showSuggestions = false;
+    });
+    widget.onChanged();
+    widget.onTap();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextField(
           controller: widget.controller,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.search,
+          autofocus: false,
+          enableSuggestions: true,
+          autocorrect: true,
           decoration: InputDecoration(
             hintText: "Nhập địa điểm",
             filled: true,
             fillColor: Colors.white,
             labelText: widget.labelText,
             prefixIcon: widget.icon,
-            suffixIcon: IconButton(
-              onPressed: () {
-                widget.controller.clear();
-                setState(() {
-                  _searchSuggestions.clear();
-                });
-                widget.onDelete();
-              },
-              icon: const Icon(Icons.clear),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.controller.text.isNotEmpty)
+                  IconButton(
+                    onPressed: () {
+                      widget.controller.clear();
+                      setState(() {
+                        _searchSuggestions.clear();
+                        _showSuggestions = false;
+                      });
+                      widget.onDelete();
+                    },
+                    icon: const Icon(Icons.clear),
+                  ),
+                IconButton(
+                  onPressed: _performSearch,
+                  icon: const Icon(Icons.search),
+                ),
+              ],
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -95,20 +139,24 @@ class _MySearchBarState extends State<MySearchBar> {
                 const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
           ),
           onChanged: (query) {
-            if (query.isNotEmpty) {
-              _getSearchSuggestions(query);
-            } else {
+            _getSearchSuggestions(query);
+            widget.onChanged();
+          },
+          onSubmitted: (value) {
+            _performSearch();
+          },
+          onTap: () {
+            if (widget.controller.text.isNotEmpty) {
               setState(() {
-                _searchSuggestions = [];
+                _showSuggestions = true;
               });
             }
-            widget.onChanged();
           },
         ),
         const SizedBox(height: 5),
         if (_isLoading)
           const CircularProgressIndicator()
-        else
+        else if (_showSuggestions && _searchSuggestions.isNotEmpty)
           Container(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.only(
@@ -125,13 +173,7 @@ class _MySearchBarState extends State<MySearchBar> {
                 return ListTile(
                   title: Text(_searchSuggestions[index]['description']),
                   onTap: () {
-                    widget.onTap();
-                    setState(() {
-                      widget.controller.text =
-                          _searchSuggestions[index]['description'];
-                      _searchSuggestions = [];
-                    });
-                    widget.onChanged();
+                    _selectSuggestion(_searchSuggestions[index]['description']);
                   },
                 );
               },

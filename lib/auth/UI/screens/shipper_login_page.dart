@@ -92,6 +92,10 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
                         children: [
                           TextField(
                             controller: _usernameController,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.next,
+                            autocorrect: false,
+                            enableSuggestions: false,
                             decoration: InputDecoration(
                               hintText: 'Tài khoản',
                               prefixIcon: const Icon(Icons.person),
@@ -107,6 +111,10 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
                           TextField(
                             controller: _passwordController,
                             obscureText: hidePass,
+                            keyboardType: TextInputType.visiblePassword,
+                            textInputAction: TextInputAction.done,
+                            autocorrect: false,
+                            enableSuggestions: false,
                             decoration: InputDecoration(
                               hintText: 'Mật khẩu',
                               prefixIcon: const Icon(Icons.password),

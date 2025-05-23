@@ -85,6 +85,10 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                         children: [
                           TextField(
                             controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autocorrect: false,
+                            enableSuggestions: true,
                             decoration: InputDecoration(
                               hintText: 'Email',
                               prefixIcon: const Icon(Icons.mail),
@@ -99,6 +103,10 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                           const SizedBox(height: 16),
                           TextField(
                             controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.done,
+                            autocorrect: false,
+                            enableSuggestions: false,
                             decoration: InputDecoration(
                               hintText: 'Số điện thoại',
                               prefixIcon: const Icon(Icons.phone),

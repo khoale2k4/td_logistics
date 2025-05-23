@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong;
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:http/http.dart' as http;
 import 'package:tdlogistic_v2/core/constant.dart';
+import 'package:tdlogistic_v2/core/helpers/map_helpers.dart';
 
 class MapScreen extends StatefulWidget {
-  final LatLng startLocation;
-  final LatLng endLocation;
+  final gmaps.LatLng startLocation;
+  final gmaps.LatLng endLocation;
 
   const MapScreen(
       {Key? key, required this.startLocation, required this.endLocation})
@@ -17,15 +20,16 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController _mapController;
-  Set<Polyline> _polylines = {};
-  Set<Marker> _markers = {};
+  MapController? _mapController;
+  List<Polyline> _polylines = [];
+  List<Marker> _markers = [];
   String _distance = "";
   String _duration = "";
 
   @override
   void initState() {
     super.initState();
+    _mapController = MapController();
     _fetchRoute();
   }
 
@@ -71,13 +75,14 @@ class _MapScreenState extends State<MapScreen> {
 
   void _setPolyline(String encoded) {
     try {
-      final List<LatLng> points = _decodePolyline(encoded);
+      final List<gmaps.LatLng> points = _decodePolyline(encoded);
+      final List<latlong.LatLng> flutterMapPoints = MapHelpers.convertLatLngList(points);
+      
       setState(() {
         _polylines.add(Polyline(
-          polylineId: PolylineId("route"),
-          points: points,
+          points: flutterMapPoints,
           color: Colors.blue,
-          width: 5,
+          strokeWidth: 5.0,
         ));
       });
     } catch (error) {
@@ -88,18 +93,42 @@ class _MapScreenState extends State<MapScreen> {
   void _setMarkers() {
     try {
       setState(() {
+        // Start marker
         _markers.add(Marker(
-          markerId: MarkerId("start"),
-          position: widget.startLocation,
-          infoWindow: InfoWindow(title: "Nơi gửi"),
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          point: MapHelpers.gmapsToFlutterMap(widget.startLocation),
+          width: 80,
+          height: 80,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+            ),
+            child: const Icon(
+              Icons.location_pin,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
         ));
+
+        // End marker
         _markers.add(Marker(
-          markerId: MarkerId("end"),
-          position: widget.endLocation,
-          infoWindow: InfoWindow(title: "Nơi nhận"),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          point: MapHelpers.gmapsToFlutterMap(widget.endLocation),
+          width: 80,
+          height: 80,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+            ),
+            child: const Icon(
+              Icons.location_pin,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
         ));
       });
     } catch (error) {
@@ -128,19 +157,21 @@ class _MapScreenState extends State<MapScreen> {
               : widget.endLocation.longitude;
 
       LatLngBounds bounds = LatLngBounds(
-        southwest: LatLng(southLat, westLng),
-        northeast: LatLng(northLat, eastLng),
+        latlong.LatLng(southLat, westLng),
+        latlong.LatLng(northLat, eastLng),
       );
 
-      _mapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      if (_mapController != null) {
+        _mapController!.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+      }
     } catch (error) {
       print("Lỗi camera: ${error.toString()}");
     }
   }
 
-  List<LatLng> _decodePolyline(String encoded) {
+  List<gmaps.LatLng> _decodePolyline(String encoded) {
     try {
-      List<LatLng> poly = [];
+      List<gmaps.LatLng> poly = [];
       int index = 0, len = encoded.length;
       int lat = 0, lng = 0;
 
@@ -164,7 +195,7 @@ class _MapScreenState extends State<MapScreen> {
         int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
         lng += dlng;
 
-        poly.add(LatLng(lat / 1E5, lng / 1E5));
+        poly.add(gmaps.LatLng(lat / 1E5, lng / 1E5));
       }
 
       return poly;
@@ -180,17 +211,27 @@ class _MapScreenState extends State<MapScreen> {
       children: [
         Container(
           height: 300,
-          child: GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: widget.startLocation,
-              zoom: 12,
+          child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: MapHelpers.gmapsToFlutterMap(widget.startLocation),
+              initialZoom: 12.0,
             ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            polylines: _polylines,
-            markers: _markers,
-            myLocationButtonEnabled: false,
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.tdlogistics.app',
+                maxZoom: 19,
+              ),
+              if (_polylines.isNotEmpty)
+                PolylineLayer(
+                  polylines: _polylines,
+                ),
+              if (_markers.isNotEmpty)
+                MarkerLayer(
+                  markers: _markers,
+                ),
+            ],
           ),
         ),
         if (_distance.isNotEmpty && _duration.isNotEmpty)

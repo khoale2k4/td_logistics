@@ -1,8 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong;
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:tdlogistic_v2/core/constant.dart';
+import 'package:tdlogistic_v2/core/helpers/map_helpers.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_bloc.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_event.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_state.dart';
@@ -17,15 +20,16 @@ class TaskRouteWidget extends StatefulWidget {
 }
 
 class _TaskRouteWidgetState extends State<TaskRouteWidget> {
-  GoogleMapController? mapController;
-  final Set<Polyline> _polylines = {};
-  final Set<Marker> _markers = {};
-  List<LatLng> _routePoints = [];
+  MapController? mapController;
+  final List<Polyline> _polylines = [];
+  final List<Marker> _markers = [];
+  List<latlong.LatLng> _routePoints = [];
   double _currentZoom = 12.0;
 
   @override
   void initState() {
     super.initState();
+    mapController = MapController();
     context.read<GetPositionsBloc>().add(GetPositions(widget.orderId));
   }
 
@@ -50,7 +54,10 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
               if (state is GettingPositions) {
                 return _buildLoadingIndicator();
               } else if (state is GotPositions) {
-                _routePoints = state.pos;
+                _routePoints = MapHelpers.convertLatLngList(state.pos);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _updateMapData();
+                });
                 return _buildMap();
               }
               return const Center(child: Text('Không có dữ liệu'));
@@ -72,21 +79,29 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
   }
 
   Widget _buildMap() {
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: _routePoints.isNotEmpty
+    return FlutterMap(
+      mapController: mapController,
+      options: MapOptions(
+        initialCenter: _routePoints.isNotEmpty
             ? _routePoints.first
-            : const LatLng(10.8231, 106.6297),
-        zoom: _currentZoom,
+            : const latlong.LatLng(10.8231, 106.6297),
+        initialZoom: _currentZoom,
       ),
-      onMapCreated: (GoogleMapController controller) {
-        setState(() {
-          mapController = controller;
-          _updateMapData();
-        });
-      },
-      markers: _markers,
-      polylines: _polylines,
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.tdlogistics.app',
+          maxZoom: 19,
+        ),
+        if (_polylines.isNotEmpty)
+          PolylineLayer(
+            polylines: _polylines,
+          ),
+        if (_markers.isNotEmpty)
+          MarkerLayer(
+            markers: _markers,
+          ),
+      ],
     );
   }
 
@@ -104,9 +119,12 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
             child: const Icon(Icons.add, color: Colors.white),
             onPressed: () {
               _currentZoom = min(_currentZoom + 1, 20);
-              mapController?.animateCamera(
-                CameraUpdate.zoomTo(_currentZoom),
-              );
+              if (mapController != null) {
+                mapController!.move(
+                  mapController!.camera.center, 
+                  _currentZoom,
+                );
+              }
             },
           ),
           const SizedBox(height: 8),
@@ -118,9 +136,12 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
             child: const Icon(Icons.remove, color: Colors.white),
             onPressed: () {
               _currentZoom = max(_currentZoom - 1, 1);
-              mapController?.animateCamera(
-                CameraUpdate.zoomTo(_currentZoom),
-              );
+              if (mapController != null) {
+                mapController!.move(
+                  mapController!.camera.center, 
+                  _currentZoom,
+                );
+              }
             },
           ),
         ],
@@ -144,14 +165,6 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text(
-              //   'Mã đơn hàng: ${widget.orderId}',
-              //   style: TextStyle(
-              //     fontWeight: FontWeight.bold,
-              //     color: mainColor,
-              //     fontSize: 16,
-              //   ),
-              // ),
               const SizedBox(height: 8),
               Text(
                 'Khoảng cách: ${_calculateDistance()} km',
@@ -184,10 +197,9 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
     _polylines.clear();
     _polylines.add(
       Polyline(
-        polylineId: PolylineId(widget.orderId),
         points: _routePoints,
         color: mainColor,
-        width: 5,
+        strokeWidth: 5.0,
       ),
     );
 
@@ -196,39 +208,40 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
     if (_routePoints.isNotEmpty) {
       final lastPoint = _routePoints.last;
 
-      final currentPositionIcon = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(48, 48)),
-        'assets/current_position_icon.png',
-      );
-
       _markers.add(
         Marker(
-          markerId: const MarkerId('current_position'),
-          position: lastPoint,
-          icon: currentPositionIcon,
-          infoWindow: InfoWindow(
-            title: 'Vị trí hiện tại',
-            snippet: '${lastPoint.latitude}, ${lastPoint.longitude}',
+          point: lastPoint,
+          width: 80,
+          height: 80,
+          child: Container(
+            decoration: BoxDecoration(
+              color: mainColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+            ),
+            child: const Icon(
+              Icons.location_pin,
+              color: Colors.white,
+              size: 30,
+            ),
           ),
         ),
       );
     }
 
     // Cập nhật vị trí camera để hiển thị toàn bộ tuyến đường
-    if (mapController != null) {
-      mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          _getBounds(_routePoints),
-          50.0,
-        ),
-      );
+    if (mapController != null && _routePoints.length > 1) {
+      final bounds = _getBounds(_routePoints);
+      mapController!.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
     }
+
+    setState(() {});
   }
 
-  LatLngBounds _getBounds(List<LatLng> points) {
+  LatLngBounds _getBounds(List<latlong.LatLng> points) {
     double? minLat, maxLat, minLng, maxLng;
 
-    for (LatLng point in points) {
+    for (latlong.LatLng point in points) {
       minLat = minLat == null ? point.latitude : min(minLat, point.latitude);
       maxLat = maxLat == null ? point.latitude : max(maxLat, point.latitude);
       minLng = minLng == null ? point.longitude : min(minLng, point.longitude);
@@ -236,8 +249,8 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
     }
 
     return LatLngBounds(
-      southwest: LatLng(minLat!, minLng!),
-      northeast: LatLng(maxLat!, maxLng!),
+      latlong.LatLng(minLat!, minLng!),
+      latlong.LatLng(maxLat!, maxLng!),
     );
   }
 }

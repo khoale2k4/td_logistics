@@ -84,9 +84,15 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 20, letterSpacing: 4),
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                autofocus: true,
+                maxLength: 6,
+                autocorrect: false,
+                enableSuggestions: false,
                 decoration: InputDecoration(
                   labelText: 'Nhập mã OTP',
                   prefixIcon: const Icon(Icons.security),
+                  counterText: '',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
