@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tdlogistic_v2/auth/bloc/auth_event.dart';
 import 'package:tdlogistic_v2/auth/bloc/auth_state.dart';
+import 'package:tdlogistic_v2/auth/data/models/user_model.dart';
 import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
+import 'package:tdlogistic_v2/core/service/send_location.dart';
 import '../data/repositories/auth_repository.dart.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -27,9 +29,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       SecureStorageService service = SecureStorageService();
       String? token = await service.getToken();
+      String? staffId = await service.getStaffId();
       print(token);
+      print(staffId);
       if (token != null && !JwtDecoder.isExpired(token)) {
-        print(JwtDecoder.decode(token)["roles"]);
+        // print('rolesssss');
+        // print(JwtDecoder.decode(token)["roles"]);
+        final List<dynamic> roles  = JwtDecoder.decode(token)["roles"];
+        print(roles);
+        print(roles.contains("SHIPPER"));
+        if(roles.contains("SHIPPER")) {
+          LocationTrackerService locationTrackerService = LocationTrackerService();
+          locationTrackerService.startStatusUpdating(token);
+        }
         final user = await authRepository.getUser(token);
         emit(Authenticated(user, token));
       } else {
@@ -68,6 +80,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         print("User: $user");
         SecureStorageService secureStorageService = SecureStorageService();
         await secureStorageService.saveToken(user["token"]);
+        await secureStorageService.saveStaffId(user["data"].id);
         emit(Authenticated(user["data"], user["token"]));
       } else {
         emit(SentOtp(event.email, event.phone, user["message"], event.id));
@@ -82,6 +95,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       LogoutRequested event, Emitter<AuthState> emit) async {
     SecureStorageService service = SecureStorageService();
     await service.deleteToken();
+    await service.deleteStaffId();
+    await service.deleteShipperType();
     emit(Unauthenticated("", "", "Đã đăng xuất", false));
   }
 
@@ -93,13 +108,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await authRepository.staffLogin(event.username, event.password);
       if (loginRs["success"]) {
         SecureStorageService service = SecureStorageService();
+        print(loginRs["data"]);
+        final user = await authRepository.getUser(loginRs["token"]);
+        print('shipperType');
+        print(user?.shipperType);
+        if(user?.shipperType == "NT") {
+          await service.saveShipperType("NT");
+        }
         service.saveToken(loginRs["token"]);
-        emit(Authenticated(loginRs["data"], loginRs["token"]));
+        service.saveStaffId(loginRs["data"]["id"]);
+        emit(Authenticated(User.fromJson(loginRs["data"]), loginRs["token"]));
       } else {
         emit(AuthFailure(
             loginRs["message"], event.username, event.password, true));
       }
     } catch (error) {
+      print(error);
       emit(Unauthenticated(event.username, event.password, "", true));
     }
   }

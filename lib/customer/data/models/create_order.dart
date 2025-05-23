@@ -28,8 +28,9 @@ class CreateOrderObject {
     String? takingDescription;
     String? note;
     String? voucherId;
+    String? paymentMethod;
 
-    CreateOrderObject({this.nameSender, this.phoneNumberSender, this.nameReceiver, this.phoneNumberReceiver, this.fromMass, this.toMass, this.mass, this.provinceSource, this.districtSource, this.wardSource, this.detailSource, this.provinceDest, this.districtDest, this.wardDest, this.detailDest, this.longSource, this.latSource, this.longDestination, this.latDestination, this.cod, this.serviceType, this.goodType, this.receiverWillPay, this.deliverDoorToDoor, this.giftOrder, this.takingDescription, this.note, this.voucherId});
+    CreateOrderObject({this.nameSender, this.phoneNumberSender, this.nameReceiver, this.phoneNumberReceiver, this.fromMass, this.toMass, this.mass, this.provinceSource, this.districtSource, this.wardSource, this.detailSource, this.provinceDest, this.districtDest, this.wardDest, this.detailDest, this.longSource, this.latSource, this.longDestination, this.latDestination, this.cod, this.serviceType, this.goodType, this.receiverWillPay, this.deliverDoorToDoor, this.giftOrder, this.takingDescription, this.note, this.voucherId, this.paymentMethod});
 
     CreateOrderObject.fromJson(Map<String, dynamic> json) {
         nameSender = json["nameSender"];
@@ -60,6 +61,7 @@ class CreateOrderObject {
         takingDescription = json["takingDescription"];
         note = json["note"];
         voucherId = json["voucherId"];
+        paymentMethod = json["paymentMethod"];
     }
 
     Map<String, dynamic> toJson() {
@@ -91,6 +93,7 @@ class CreateOrderObject {
         _data["takingDescription"] = takingDescription;
         _data["note"] = note;
         _data["voucherId"] = voucherId;
+        _data["paymentMethod"] = paymentMethod;
         if(giftOrder != null) {
             _data["giftOrder"] = giftOrder?.toJson();
         }

@@ -14,6 +14,7 @@ import 'package:tdlogistic_v2/customer/data/repositories/voucher_repository.dart
 import 'order_event.dart';
 import 'order_state.dart';
 import '../../core/repositories/order_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderBlocCus extends Bloc<OrderEvent, OrderState> {
   final SecureStorageService secureStorageService;
@@ -27,8 +28,9 @@ class OrderBlocCus extends Bloc<OrderEvent, OrderState> {
     emit(OrderLoading([]));
 
     try {
-      final fetchOrder = await orderRepository
-          .getOrders((await secureStorageService.getToken())!);
+      final userId = await secureStorageService.getStaffId() ?? "";
+      final fetchOrder = await orderRepository.getOrders(
+          (await secureStorageService.getToken())!, userId);
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
       if (fetchOrder["success"]) {
@@ -58,8 +60,9 @@ class OrderBlocSearchCus extends Bloc<OrderEvent, OrderState> {
     if (event.status == 1) print("status = 1");
     emit(OrderLoading([]));
     try {
-      final fetchOrder = await orderRepository
-          .getOrders((await secureStorageService.getToken())!);
+      final userId = await secureStorageService.getStaffId() ?? "";
+      final fetchOrder = await orderRepository.getOrders(
+          (await secureStorageService.getToken())!, userId);
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
       if (fetchOrder["success"]) {
@@ -86,14 +89,16 @@ class OrderBlocFee extends Bloc<OrderEvent, OrderState> {
     emit(OrderFeeCalculating()); // Trạng thái đang tính phí
     try {
       final token = await secureStorageService.getToken();
-      final fee = await orderRepository.calculateFee(token!,CalculateFeePayLoad(
-          serviceType: event.serviceType,
-          cod: event.cod,
-          latSource: event.latSource,
-          longSource: event.longSource,
-          latDestination: event.latDestination,
-          longDestination: event.longDestination,
-          voucherId: event.voucherId));
+      final fee = await orderRepository.calculateFee(
+          token!,
+          CalculateFeePayLoad(
+              serviceType: event.serviceType,
+              cod: event.cod,
+              latSource: event.latSource,
+              longSource: event.longSource,
+              latDestination: event.latDestination,
+              longDestination: event.longDestination,
+              voucherId: event.voucherId));
 
       print(fee);
 
@@ -177,8 +182,9 @@ class ProcessingOrderBloc extends Bloc<OrderEvent, OrderState> {
     print("Getting order");
     emit(OrderLoading([]));
     try {
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
-          (await secureStorageService.getToken())!,
+          (await secureStorageService.getToken())!, userId,
           status: "PROCESSING");
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
@@ -200,8 +206,10 @@ class ProcessingOrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(OrderLoading(currentState.orders));
       List<Order> updatedOrders = [];
 
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
         (await secureStorageService.getToken())!,
+        userId,
         status: "PROCESSING",
         page: event.page,
       );
@@ -231,8 +239,9 @@ class TakingOrderBloc extends Bloc<OrderEvent, OrderState> {
     print("Getting order");
     emit(OrderLoading([]));
     try {
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
-          (await secureStorageService.getToken())!,
+          (await secureStorageService.getToken())!, userId,
           status: "TAKING");
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
@@ -254,8 +263,10 @@ class TakingOrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(OrderLoading(currentState.orders));
       List<Order> updatedOrders = [];
 
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
         (await secureStorageService.getToken())!,
+        userId,
         status: "TAKING",
         page: event.page,
       );
@@ -285,8 +296,9 @@ class DeliveringOrderBloc extends Bloc<OrderEvent, OrderState> {
     print("Getting order");
     emit(OrderLoading([]));
     try {
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
-          (await secureStorageService.getToken())!,
+          (await secureStorageService.getToken())!, userId,
           status: "DELIVERING");
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
@@ -307,8 +319,10 @@ class DeliveringOrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(OrderLoading(currentState.orders));
       List<Order> updatedOrders = [];
 
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
         (await secureStorageService.getToken())!,
+        userId,
         status: "DELIVERING",
         page: event.page,
       );
@@ -338,8 +352,9 @@ class CancelledOrderBloc extends Bloc<OrderEvent, OrderState> {
     print("Getting order");
     emit(OrderLoading([]));
     try {
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
-          (await secureStorageService.getToken())!,
+          (await secureStorageService.getToken())!, userId,
           status: "CANCEL");
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
@@ -361,8 +376,10 @@ class CancelledOrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(OrderLoading(currentState.orders));
       final List<Order> updatedOrders = [];
 
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
         (await secureStorageService.getToken())!,
+        userId,
         status: "CANCEL",
         page: event.page,
       );
@@ -392,8 +409,9 @@ class CompletedOrderBloc extends Bloc<OrderEvent, OrderState> {
     print("Getting order");
     emit(OrderLoading([]));
     try {
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
-          (await secureStorageService.getToken())!,
+          (await secureStorageService.getToken())!, userId,
           status: "RECEIVED");
       List<dynamic> fetchedOrders = fetchOrder["data"];
       List<Order> orders = [];
@@ -415,8 +433,10 @@ class CompletedOrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(OrderLoading(currentState.orders));
       final List<Order> updatedOrders = [];
 
+      final userId = await secureStorageService.getStaffId() ?? "";
       final fetchOrder = await orderRepository.getOrders(
         (await secureStorageService.getToken())!,
+        userId,
         status: "RECEIVED",
         page: event.page,
       );
@@ -475,6 +495,12 @@ class CreateOrderBloc extends Bloc<OrderEvent, OrderState> {
           event.ci);
       if (orderCreate["success"]) {
         emit(OrderCreated());
+        // print(event.order);
+        // print(event.order.paymentMethod);
+        if (event.order.paymentMethod == 'BY_BANK_TRANSFER') {
+          final url = Uri.parse(orderCreate['data']['qrcode']);
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        }
       } else {
         emit(OrderCreateFaild(orderCreate["message"]));
       }

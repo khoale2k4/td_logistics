@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-
-import 'package:contacts_service/contacts_service.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_contacts/contact.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -124,11 +125,10 @@ class _CreateOrderState extends State<CreateOrder> {
   bool _overMaxWeight = false;
   bool _goodTypeValid = true;
 
-  Future<Map<String, String?>> _pickContact() async {
-    // Yêu cầu quyền truy cập danh bạ
-    if (await Permission.contacts.request().isGranted) {
-      Iterable<Contact> contacts = await ContactsService.getContacts();
-      // Hiển thị danh bạ trong danh sách
+  Future<Map<String, String?>> _pickContact(BuildContext context) async {
+    if (await FlutterContacts.requestPermission()) {
+      final contacts = await FlutterContacts.getContacts(withProperties: true);
+
       final selectedContact = await showModalBottomSheet<Contact?>(
         context: context,
         builder: (BuildContext context) {
@@ -136,10 +136,12 @@ class _CreateOrderState extends State<CreateOrder> {
             children: contacts
                 .map(
                   (contact) => ListTile(
-                    title: Text(contact.displayName ?? 'Không rõ tên'),
-                    subtitle: Text(contact.phones!.isNotEmpty
-                        ? contact.phones!.first.value!
-                        : 'Không có số điện thoại'),
+                    title: Text(contact.displayName),
+                    subtitle: Text(
+                      contact.phones.isNotEmpty
+                          ? contact.phones.first.number
+                          : 'Không có số điện thoại',
+                    ),
                     onTap: () {
                       Navigator.pop(context, contact);
                     },
@@ -150,17 +152,15 @@ class _CreateOrderState extends State<CreateOrder> {
         },
       );
 
-      // Trả về kết quả nếu người dùng chọn
       if (selectedContact != null) {
         return {
           'name': selectedContact.displayName,
-          'phone': selectedContact.phones!.isNotEmpty
-              ? selectedContact.phones!.first.value
+          'phone': selectedContact.phones.isNotEmpty
+              ? selectedContact.phones.first.number
               : null,
         };
       }
     } else {
-      // Xử lý khi không có quyền
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Bạn cần cấp quyền để truy cập danh bạ.')),
       );
@@ -267,8 +267,10 @@ class _CreateOrderState extends State<CreateOrder> {
           latSource: senderLL!["lat"] ?? 0,
           longSource: senderLL!["lng"] ?? 0,
           longDestination: receiverLL!["lng"] ?? 0,
-          serviceType:
-              _selectedDeliveryMethod == context.tr("order_pages.order_detail_page.quick_transmit") ? "Siêu nhanh" : "Siêu rẻ",
+          serviceType: _selectedDeliveryMethod ==
+                  context.tr("order_pages.order_detail_page.quick_transmit")
+              ? "Siêu nhanh"
+              : "Siêu rẻ",
           voucherId: voucher));
     } catch (error) {
       print("Lỗi khi tính toán chi phí: ${error.toString()}");
@@ -296,8 +298,8 @@ class _CreateOrderState extends State<CreateOrder> {
                 handleNewOrder(context); // Gọi hàm tạo đơn hàng.
               },
               style: ElevatedButton.styleFrom(backgroundColor: mainColor),
-              child:
-                  Text(context.tr('order_pages.confirm_page.confirm'), style: const TextStyle(color: Colors.white)),
+              child: Text(context.tr('order_pages.confirm_page.confirm'),
+                  style: const TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -468,8 +470,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
 
   Future<void> handleNewOrder(BuildContext context) async {
     try {
-      final senderAddress = getAddress(_senderAddress.text);
-      final receiverAddress = getAddress(_receiverAddress.text);
+      final senderAddress = getAddress(_senderLocation.text);
+      final receiverAddress = getAddress(_receiverLocation.text);
       final senderLL = await getLatLngFromAddress(_senderAddress.text);
       final receiverLL = await getLatLngFromAddress(_receiverAddress.text);
       int? cod = int.tryParse(_cashOnDeliveryController.text);
@@ -477,31 +479,53 @@ Số lượng hình ảnh đính kèm: ${_images.length}
             CreateOrderEvent(
                 CreateOrderObject(
                     cod: (cod == null || cod == 0) ? null : cod,
-                    detailDest: "20 Lý Thái Tổ",
-                    // receiverAddress["detail"],
-                    detailSource: "Đường tỉnh 52, tổ 6 Khu phố Hiệp Hòa",
-                    // senderAddress["detail"],
-                    districtDest: "Thành phố Vũng Tàu",
-                    // receiverAddress["district"],
-                    districtSource: "Huyện Đất Đỏ",
-                    // senderAddress["district"],
+                    detailDest:
+                        //"20 Lý Thái Tổ",
+                        receiverAddress["detail"],
+                    detailSource:
+                        //"Đường tỉnh 52, tổ 6 Khu phố Hiệp Hòa",
+                        senderAddress["detail"],
+                    districtDest:
+                        // "Thành phố Vũng Tàu",
+                        receiverAddress["district"],
+                    districtSource:
+                        // "Huyện Đất Đỏ",
+                        senderAddress["district"],
                     mass: (int.tryParse(_weightController.text)),
                     nameReceiver: toProper(_receiverNameController.text),
                     nameSender: toProper(_senderNameController.text),
                     phoneNumberReceiver: _receiverPhoneController.text,
                     phoneNumberSender: _senderPhoneController.text,
-                    provinceDest: "Tỉnh Bà Rịa - Vũng Tàu",
-                    // receiverAddress["province"],
-                    provinceSource: "Tỉnh Bà Rịa - Vũng Tàu",
-                    // senderAddress["province"],
+                    provinceDest:
+                        // "Tỉnh Bà Rịa - Vũng Tàu",
+                        receiverAddress["province"],
+                    provinceSource:
+                        // "Tỉnh Bà Rịa - Vũng Tàu",
+                        senderAddress["province"],
                     // sửa loại gửi hàng
-                    serviceType: _selectedDeliveryMethod == context.tr("order_pages.order_detail_page.quick_transmit")
-                        ? "SN"
-                        : "SR",
-                    wardDest: "Phường Đất Đỏ",
-                    // receiverAddress["ward"],
-                    wardSource: "Xã Long Mỹ",
-                    // senderAddress["ward"],
+                    serviceType: _selectedDeliveryMethod ==
+                            context.tr(
+                                "order_pages.order_detail_page.quick_transmit")
+                        ? "Siêu nhanh"
+                        : _selectedDeliveryMethod ==
+                                context.tr(
+                                    "order_pages.order_detail_page.eco_transmit")
+                            ? "Siêu rẻ"
+                            : _selectedDeliveryMethod ==
+                                    context
+                                        .tr("order_pages.order_detail_page.hht")
+                                ? "HTT"
+                                : _selectedDeliveryMethod ==
+                                        context.tr(
+                                            "order_pages.order_detail_page.ttk")
+                                    ? "TTK"
+                                    : "CPN",
+                    wardDest:
+                        // "Phường Đất Đỏ",
+                        receiverAddress["ward"],
+                    wardSource:
+                        // "Xã Long Mỹ",
+                        senderAddress["ward"],
                     deliverDoorToDoor: _isDoorToDoor,
                     fromMass: _selectedWeightRange.toInt() == -1
                         ? null
@@ -517,6 +541,11 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                     receiverWillPay: _senderWillPay,
                     takingDescription: _orderDescriptionController.text,
                     note: _noteController.text,
+                    paymentMethod: _selectedPaymentMethod ==
+                            context.tr(
+                                "order_pages.payment_page.payment_methods.bank_transfer")
+                        ? "BY_BANK_TRANSFER"
+                        : "BY_CASH",
                     giftOrder: _isAGift
                         ? getGift(
                             _giftMessageController.text, giftTopics[_giftTopic])
@@ -665,7 +694,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                                   Icons.start,
                                   color: secondColor,
                                 ),
-                                labelText: context.tr("order_pages.locations_page.sender_location"),
+                                labelText: context.tr(
+                                    "order_pages.locations_page.sender_location"),
                                 controller: _senderLocation,
                                 onChanged: () {
                                   _senderAddress.text = _senderLocation.text;
@@ -687,7 +717,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                               MySearchBar(
                                 icon: const Icon(Icons.last_page,
                                     color: mainColor),
-                                labelText: context.tr("order_pages.locations_page.receiver_location"),
+                                labelText: context.tr(
+                                    "order_pages.locations_page.receiver_location"),
                                 controller: _receiverLocation,
                                 onChanged: () {
                                   _receiverAddress.text =
@@ -712,7 +743,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                               ),
                               if (!_validLocation && !_validAddress)
                                 Text(
-                                  context.tr("order_pages.locations_page.please_enter_address"),
+                                  context.tr(
+                                      "order_pages.locations_page.please_enter_address"),
                                   style: const TextStyle(color: Colors.red),
                                 )
                             ],
@@ -757,7 +789,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                         } else if (state is GotLocations) {
                           return buildHorizontalLocationList(state.locations);
                         } else {
-                          return Text(context.tr("order_pages.locations_page.fetching_locations"));
+                          return Text(context.tr(
+                              "order_pages.locations_page.fetching_locations"));
                         }
                       },
                     ),
@@ -772,7 +805,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                       ),
                     const SizedBox(height: 10),
                     _buildSectionTitle(
-                      context.tr("order_pages.locations_page.favorite_pickup_location"),
+                      context.tr(
+                          "order_pages.locations_page.favorite_pickup_location"),
                       button: true,
                       textButton: context.tr("order_pages.locations_page.more"),
                       func: () async {
@@ -819,7 +853,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                       child: _buildFavoriteLocations(state.favLocations),
                     );
                   } else {
-                    return Text(context.tr("order_pages.locations_page.fetching_locations"));
+                    return Text(context
+                        .tr("order_pages.locations_page.fetching_locations"));
                   }
                 },
               ),
@@ -1018,8 +1053,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
               );
             },
             icon: const Icon(Icons.location_on, color: Colors.black),
-            label:
-                Text(context.tr("order_pages.locations_page.see_all"), style: const TextStyle(color: Colors.black)),
+            label: Text(context.tr("order_pages.locations_page.see_all"),
+                style: const TextStyle(color: Colors.black)),
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Colors.grey.shade300,
@@ -1189,7 +1224,7 @@ Số lượng hình ảnh đính kèm: ${_images.length}
           suffixIcon: fromContacts
               ? InkWell(
                   onTap: () async {
-                    final contact = await _pickContact();
+                    final contact = await _pickContact(context);
                     if (contact != null) {
                       controller.text = contact['phone'] ?? '';
                       onChanged(controller.text);
@@ -1285,7 +1320,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
   }
 
   Widget _buildNumberInputPage() {
-    _selectedDeliveryMethod = context.tr("order_pages.order_detail_page.quick_transmit");
+    _selectedDeliveryMethod =
+        context.tr("order_pages.order_detail_page.quick_transmit");
     return SingleChildScrollView(
       child: Container(
         padding: const EdgeInsets.only(top: 50.0, left: 20, right: 20),
@@ -1452,9 +1488,11 @@ Số lượng hình ảnh đính kèm: ${_images.length}
               runSpacing: 8,
               children: [
                 for (var type in [
-                  context.tr("order_pages.order_detail_page.good_types.breakable"),
+                  context
+                      .tr("order_pages.order_detail_page.good_types.breakable"),
                   context.tr("order_pages.order_detail_page.good_types.food"),
-                  context.tr("order_pages.order_detail_page.good_types.clothes"),
+                  context
+                      .tr("order_pages.order_detail_page.good_types.clothes"),
                   context.tr("order_pages.order_detail_page.good_types.fresh"),
                   context.tr("order_pages.order_detail_page.good_types.others")
                 ])
@@ -1617,7 +1655,13 @@ Số lượng hình ảnh đính kèm: ${_images.length}
             const SizedBox(height: 20),
             // Dropdown cho phương thức giao
             _buildDropdown(
-              items: [context.tr("order_pages.order_detail_page.eco_transmit"), context.tr("order_pages.order_detail_page.quick_transmit")],
+              items: [
+                context.tr("order_pages.order_detail_page.eco_transmit"),
+                context.tr("order_pages.order_detail_page.quick_transmit"),
+                context.tr("order_pages.order_detail_page.hht"),
+                context.tr("order_pages.order_detail_page.cpn"),
+                context.tr("order_pages.order_detail_page.ttk")
+              ],
               selectedValue: _selectedDeliveryMethod,
               labelText:
                   context.tr("order_pages.order_detail_page.shipping_method"),
@@ -1713,7 +1757,9 @@ Số lượng hình ảnh đính kèm: ${_images.length}
   }
 
   Widget _buildPaymentPage(BuildContext context) {
-    _selectedPaymentMethod = context.tr("order_pages.payment_page.payment_methods.cash");
+    _selectedPaymentMethod = _selectedPaymentMethod == ''
+        ? context.tr("order_pages.payment_page.payment_methods.cash")
+        : _selectedPaymentMethod;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
@@ -1724,9 +1770,10 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                 func: () {}),
             _buildDropdown(
               items: [
-                context.tr("order_pages.payment_page.payment_methods.bank_transfer"),
+                context.tr(
+                    "order_pages.payment_page.payment_methods.bank_transfer"),
                 context.tr("order_pages.payment_page.payment_methods.cash"),
-                context.tr("order_pages.payment_page.payment_methods.e_wallet"),
+                // context.tr("order_pages.payment_page.payment_methods.e_wallet"),
               ],
               selectedValue: _selectedPaymentMethod,
               labelText:
@@ -1806,7 +1853,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
               const Icon(Icons.local_offer, color: Colors.red),
               const SizedBox(width: 10),
               Text(
-                voucher ?? context.tr("order_pages.payment_page.voucher_selection"),
+                voucher ??
+                    context.tr("order_pages.payment_page.voucher_selection"),
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -1892,7 +1940,7 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                         toProper(_senderNameController.text)),
                     _buildInfoRow(
                         context.tr('order_pages.confirm_page.sender_address'),
-                        _senderAddress.text),
+                        _senderLocation.text),
                     _buildInfoRow(
                         context.tr('order_pages.confirm_page.sender_phone'),
                         _senderPhoneController.text),
@@ -1914,7 +1962,7 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                         toProper(_receiverNameController.text)),
                     _buildInfoRow(
                         context.tr('order_pages.confirm_page.receiver_address'),
-                        _receiverAddress.text),
+                        _receiverLocation.text),
                     _buildInfoRow(
                         context.tr('order_pages.confirm_page.receiver_phone'),
                         _receiverPhoneController.text),

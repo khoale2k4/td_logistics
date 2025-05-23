@@ -34,29 +34,31 @@ class _MySearchBarState extends State<MySearchBar> {
   bool _isLoading = false;
 
   Future<void> _getSearchSuggestions(String query) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final url = Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$_apiKey&language=vi');
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _searchSuggestions = data['predictions'];
-        });
-      } else {
-        print("Error fetching suggestions: ${response.body}");
-      }
-    } catch (error) {
-      print("Error fetching location: $error");
-    } finally {
+    if (mounted) {
       setState(() {
-        _isLoading = false;
+        _isLoading = true;
       });
+
+      try {
+        final url = Uri.parse(
+            'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$_apiKey&language=vi');
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          setState(() {
+            _searchSuggestions = data['predictions'];
+          });
+        } else {
+          print("Error fetching suggestions: ${response.body}");
+        }
+      } catch (error) {
+        print("Error fetching location: $error");
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -94,7 +96,8 @@ class _MySearchBarState extends State<MySearchBar> {
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(color: Colors.red, width: 1.5),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
           ),
           onTap: widget.onTap,
           onChanged: (query) {
@@ -109,9 +112,9 @@ class _MySearchBarState extends State<MySearchBar> {
           },
         ),
         const SizedBox(height: 5),
-        if (_isLoading) 
-          const CircularProgressIndicator() 
-        else 
+        if (_isLoading)
+          const CircularProgressIndicator()
+        else
           Container(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.only(

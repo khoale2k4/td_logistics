@@ -140,7 +140,19 @@
             "insurance": "Add Insurance",
             "insurance_added": "Insurance added",
             "shipping_method": "Shipping Method",
-            "note": "Order Notes"
+            "note": "Order Notes",
+            "good_types": {
+                "breakable": "Fragile goods",
+                "food": "Food",
+                "clothes": "Clothing",
+                "fresh": "Fresh products",
+                "others": "Others"
+            },
+            "eco_transmit": "Super Saver",
+            "quick_transmit": "Super Express",
+            "hht": "HHT: Express Delivery",
+            "ttk": "TTK: Economy Delivery",
+            "cpn": "CPN: Courier Delivery"
         },
         "payment_page": {
             "title": "Payment Information",

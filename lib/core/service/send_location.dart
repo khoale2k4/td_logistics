@@ -18,7 +18,52 @@ class LocationTrackerService {
     return distanceInMeters > 2;
   }
 
+  Future<void> startStatusUpdating(String token) async {
+    print("start sending location");
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    // Define location settings with a distance filter of 10 meters
+    LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter:
+          10, // Minimum distance (in meters) before getting a new update
+    );
+
+    double curLat = 0;
+    double curLng = 0;
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position position) {
+        // Send the current position to the API every 10 seconds
+        // curLat = position.latitude;
+        curLat = 10.3490625;
+        curLng = 107.0762525;
+        // curLng = position.longitude;
+        Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
+          await _updateStatus(curLat, curLng, token);
+        });
+        Timer.periodic(const Duration(minutes: 5), (Timer timer) async {});
+      },
+    );
+  }
+
   Future<void> startLocationTracking(String token) async {
+    print("start sending location");
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return Future.error('Location services are disabled.');
@@ -52,16 +97,22 @@ class LocationTrackerService {
         Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
           if (calculateDistance(
               curLat, curLng, position.latitude, position.longitude)) {
-            curLat = position.latitude;
-            curLng = position.longitude;
-            for (String taskIs in taskIds) {
-              await _sendLocationToAPI(
-                  position.latitude, position.longitude, taskIs, token);
+            // curLat = position.latitude;
+            curLat = 10.5417397;
+            curLng = 107.2429976;
+            // curLng = position.longitude;
+            try {
+              for (String taskIs in taskIds) {
+                await _sendLocationToAPI(curLat, curLng, taskIs, token);
+                // await sendLatLng(curLat, curLng, token);
+              }
+            } catch (error) {
+              print("Lỗi khi gửi toạ độ: $error");
             }
           }
+          await _updateStatus(curLat, curLng, token);
         });
-        Timer.periodic(const Duration(minutes: 5), (Timer timer) async {
-        });
+        Timer.periodic(const Duration(minutes: 5), (Timer timer) async {});
       },
     );
   }
@@ -97,12 +148,12 @@ class LocationTrackerService {
           'lng': longitude,
         }),
       );
-      print(response.body);
+      // print(response.body);
 
       if (response.statusCode == 201) {
-        print('Location sent successfully');
+        print('Location sent successfully sendLocation to task');
       } else {
-        print('Failed to send location');
+        print('Failed to send location sendLocation to task');
       }
     } catch (error) {
       print("Lỗi khi gửi toạ độ: $error");
@@ -128,9 +179,9 @@ class LocationTrackerService {
       print(response.body);
 
       if (response.statusCode == 201) {
-        print('Location sent successfully');
+        print('Location sent successfully update status');
       } else {
-        print('Failed to send location');
+        print('Failed to send location update status');
       }
     } catch (error) {
       print("Lỗi khi gửi toạ độ: $error");

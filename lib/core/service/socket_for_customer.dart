@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:tdlogistic_v2/core/service/notification.dart';
@@ -48,6 +48,15 @@ class _SocketCustomerPageState extends State<SocketCustomerPage> {
 
   void connectSocket(String userId) async {
     print('Bearer $token');
+    // await NotificationService.instance.init();
+    // void showNotification(String title, String body, String type) async {
+    //   await NotificationService.instance.showNotification(
+    //     id: 0,
+    //     title: title,
+    //     body: body,
+    //   );
+    // }
+
     try {
       socket = IO.io(
         host,
@@ -62,11 +71,11 @@ class _SocketCustomerPageState extends State<SocketCustomerPage> {
 
       socket.on('message', (data) async {
         if (data['category'] == 'ORDER' && data['type'] == 'PENDING') {
-          showNotification("Đơn hàng mới", data['message'], 'new order');
+          // showNotification("Đơn hàng mới", data['message'], 'new order');
         } else if (data['category'] == 'ORDER' && data['type'] == "ACCEPTED") {
-          showNotification("Đơn hàng được chấp nhận", data['message'], 'new order');
+          // showNotification("Đơn hàng được chấp nhận", data['message'], 'new order');
         } else if (data['senderId'] != null) {
-          showNotification("Tin nhắn mới!", "Bạn có một tin nhắn từ ...", 'new message');
+          // showNotification("Tin nhắn mới!", "Bạn có một tin nhắn từ ...", 'new message');
           context.read<GetChatBloc>().add(NewMessage(data['content'], " "));
         }
       });

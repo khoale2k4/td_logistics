@@ -24,6 +24,9 @@ class Task {
         updatedAt = json["updatedAt"];
         order = json["order"] == null ? null : Order.fromJson(json["order"]);
         staff = json["staff"] == null ? null : Staff.fromJson(json["staff"]);
+        print('order in taks');
+        print(order);
+        print(json["order"]);
     }
 
     Map<String, dynamic> toJson() {

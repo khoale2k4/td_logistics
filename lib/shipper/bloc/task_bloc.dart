@@ -18,6 +18,8 @@ class TaskBlocShipReceive extends Bloc<TaskEvent, TaskState> {
   final OrderRepository orderRepository = OrderRepository();
   final SecureStorageService secureStorageService;
   final TaskRepository taskRepository = TaskRepository();
+  final LocationTrackerService locationTrackerService =
+      LocationTrackerService();
 
   TaskBlocShipReceive({required this.secureStorageService})
       : super(TaskLoading()) {
@@ -29,8 +31,14 @@ class TaskBlocShipReceive extends Bloc<TaskEvent, TaskState> {
     emit(TaskLoading());
 
     try {
+      final shipperType = await secureStorageService.getShipperType() ?? "LT";
+      print('shipperType');
+      print(shipperType);
       final fetchTask = await taskRepository.getTasks(
-          (await secureStorageService.getToken())!, "TAKING");
+          (await secureStorageService.getToken())!,
+          shipperType == "NT" ? "TAKING" : null,
+          shipperType == "NT" ? null : "TAKING",
+          (await secureStorageService.getStaffId())!);
       List<dynamic> fetchedTasks = [];
       List<Task> tasks = [];
       if (fetchTask["success"]) {
@@ -44,6 +52,10 @@ class TaskBlocShipReceive extends Bloc<TaskEvent, TaskState> {
             tasks.add(newTask);
           }
         }
+        List<String> taskIds = tasks.map((task) => task.id!).toList();
+        locationTrackerService.changeToThisList(taskIds);
+        locationTrackerService
+            .startLocationTracking((await secureStorageService.getToken())!);
       }
       emit(TaskLoaded(tasks, tasks.length));
     } catch (error) {
@@ -58,9 +70,12 @@ class TaskBlocShipReceive extends Bloc<TaskEvent, TaskState> {
         emit(TaskLoading());
         final List<Task> updatedTasks = [];
 
+        final shipperType = await secureStorageService.getShipperType() ?? "LT";
         final fetchTask = await taskRepository.getTasks(
           (await secureStorageService.getToken())!,
-          "TAKING",
+          shipperType == "NT" ? "TAKING" : null,
+          shipperType == "NT" ? null : "TAKING",
+          (await secureStorageService.getStaffId())!,
           page: event.page,
         );
 
@@ -112,8 +127,12 @@ class TaskBlocShipSend extends Bloc<TaskEvent, TaskState> {
     emit(TaskLoading());
 
     try {
+      final shipperType = await secureStorageService.getShipperType() ?? "LT";
       final fetchTask = await taskRepository.getTasks(
-          (await secureStorageService.getToken())!, 'DELIVERING');
+          (await secureStorageService.getToken())!,
+          shipperType == "NT" ? "DELIVERING" : null,
+          shipperType == "NT" ? null : "DELIVERING",
+          (await secureStorageService.getStaffId())!);
       List<dynamic> fetchedTasks = [];
       List<Task> tasks = [];
       if (fetchTask["success"]) {
@@ -144,9 +163,12 @@ class TaskBlocShipSend extends Bloc<TaskEvent, TaskState> {
       emit(TaskLoading());
       final List<Task> updatedTasks = [];
 
+      final shipperType = await secureStorageService.getShipperType() ?? "LT";
       final fetchTask = await taskRepository.getTasks(
         (await secureStorageService.getToken())!,
-        'DELIVERING',
+        shipperType == "NT" ? "DELIVERING" : null,
+        shipperType == "NT" ? null : "DELIVERING",
+        (await secureStorageService.getStaffId())!,
         page: event.page,
       );
 
@@ -192,7 +214,10 @@ class TaskBlocSearchShip extends Bloc<TaskEvent, TaskState> {
     emit(TaskLoading());
     try {
       final fetchTask = await taskRepository.getTasks(
-          (await secureStorageService.getToken())!, "");
+          (await secureStorageService.getToken())!,
+          null,
+          null,
+          (await secureStorageService.getStaffId())!);
       List<dynamic> fetchedTasks = fetchTask["data"];
       List<Task> tasks = [];
       if (fetchTask["success"]) {
@@ -226,6 +251,8 @@ class TaskBlocSearchShip extends Bloc<TaskEvent, TaskState> {
         final fetchTask = await taskRepository.getTasks(
           (await secureStorageService.getToken())!,
           "",
+          '',
+          (await secureStorageService.getStaffId())!,
           page: newPage,
         );
 
@@ -268,7 +295,6 @@ class GetImagesShipBloc extends Bloc<TaskEvent, TaskState> {
       final order = await orderRepository.getOrderById(
           event.orderId, (await secureStorageService.getToken())!);
       if (order["success"]) {
-        print(event.orderId);
         List<Uint8List> send = [];
         List<String> sendIds = [];
         List<Uint8List> receive = [];
@@ -422,15 +448,21 @@ class PendingOrderBloc extends Bloc<TaskEvent, TaskState> {
     try {
       OrderRepository orderRepository = OrderRepository();
 
-      final pendingOrders = await orderRepository.getOrders(
-          (await secureStorageService.getToken())!,
-          status: "PROCESSING");
+      final pendingOrders = await orderRepository
+          .getPendingOrders((await secureStorageService.getToken())!);
+      // await orderRepository.getOrders(
+      //     (await secureStorageService.getToken())!,
+      //     status: "PROCESSING");
       List<Task> tasks = [];
 
       if (pendingOrders["success"]) {
         final fetchedTasks = pendingOrders["data"];
         for (int i = 0; i < fetchedTasks.length; i++) {
           Task newTask = Task.fromJson(fetchedTasks[i]);
+          newTask.id = fetchedTasks[i]['orderId'];
+          tasks.add(newTask);
+          continue;
+
           final order = await orderRepository.getOrderById(
               newTask.id!, (await secureStorageService.getToken())!);
           if (order["success"] && order["data"].length > 0) {
@@ -466,10 +498,12 @@ class PendingOrderBloc extends Bloc<TaskEvent, TaskState> {
       }
 
       // Lấy danh sách đơn hàng đang xử lý
-      final pendingOrders = await orderRepository.getOrders(
-        (await secureStorageService.getToken())!,
-        status: "PROCESSING",
-      );
+      final pendingOrders = await orderRepository
+          .getPendingOrders((await secureStorageService.getToken())!);
+      // await orderRepository.getOrders(
+      //   (await secureStorageService.getToken())!,
+      //   status: "PROCESSING",
+      // );
 
       List<Task> tasks = [];
 
@@ -478,16 +512,20 @@ class PendingOrderBloc extends Bloc<TaskEvent, TaskState> {
         final fetchedTasks = pendingOrders["data"];
         for (var fetchedTask in fetchedTasks) {
           Task newTask = Task.fromJson(fetchedTask);
-          final order = await orderRepository.getOrderById(
-            newTask.id!,
-            (await secureStorageService.getToken())!,
-          );
+          newTask.id = fetchedTask['orderId'];
+          tasks.add(newTask);
+          continue;
+          // Task newTask = Task.fromJson(fetchedTask);
+          // final order = await orderRepository.getOrderById(
+          //   newTask.id!,
+          //   (await secureStorageService.getToken())!,
+          // );
 
-          // Thêm thông tin đơn hàng vào nhiệm vụ nếu tải thành công
-          if (order["success"] && order["data"].isNotEmpty) {
-            newTask.order = Order.fromJson(order["data"].first);
-            tasks.add(newTask);
-          }
+          // // Thêm thông tin đơn hàng vào nhiệm vụ nếu tải thành công
+          // if (order["success"] && order["data"].isNotEmpty) {
+          //   newTask.order = Order.fromJson(order["data"].first);
+          //   tasks.add(newTask);
+          // }
         }
       }
 
@@ -505,22 +543,28 @@ class PendingOrderBloc extends Bloc<TaskEvent, TaskState> {
         emit(TaskLoading());
         final List<Task> updatedTasks = [];
 
-        final fetchTask = await orderRepository.getOrders(
-            (await secureStorageService.getToken())!,
-            status: "PROCESSING",
-            page: event.page);
+        final fetchTask = await orderRepository
+            .getPendingOrders((await secureStorageService.getToken())!);
+        // await orderRepository.getOrders(
+        //     (await secureStorageService.getToken())!,
+        //     status: "PROCESSING",
+        //     page: event.page);
         List<dynamic> fetchedTasks = fetchTask["data"];
         if (fetchTask["success"]) {
           for (int i = 0; i < fetchedTasks.length; i++) {
             Task newTask = Task.fromJson(fetchedTasks[i]);
-            final order = await orderRepository.getOrderById(
-                newTask.id!, (await secureStorageService.getToken())!);
-            if (order["success"] && order["data"].length > 0) {
-              newTask.order = Order.fromJson(order["data"].first);
-              updatedTasks.add(newTask);
-            } else {
-              updatedTasks.add(Task.fromJson(fetchedTasks[i]));
-            }
+            newTask.id = fetchedTasks[i]['orderId'];
+            updatedTasks.add(newTask);
+            continue;
+            // Task newTask = Task.fromJson(fetchedTasks[i]);
+            // final order = await orderRepository.getOrderById(
+            //     newTask.id!, (await secureStorageService.getToken())!);
+            // if (order["success"] && order["data"].length > 0) {
+            //   newTask.order = Order.fromJson(order["data"].first);
+            //   updatedTasks.add(newTask);
+            // } else {
+            //   updatedTasks.add(Task.fromJson(fetchedTasks[i]));
+            // }
           }
         }
         emit(TaskLoaded(updatedTasks, updatedTasks.length, page: event.page));
@@ -545,8 +589,20 @@ class ConfirmTaskBloc extends Bloc<TaskEvent, TaskState> {
     try {
       emit(AcceptingTask());
 
+      SecureStorageService service = SecureStorageService();
       var rs;
-      if (event.type == "confirm taken") {
+      final shipperType = await service.getShipperType() ?? "LT";
+      if (shipperType == "LT") {
+        if (event.type == "CANCEL") {
+          rs = await taskRepository.cancelTasks(
+            (await secureStorageService.getToken())!,
+            event.taskId,
+            event.reason);
+        } else {
+          rs = await taskRepository.confirmTaskLTShipper(
+              (await secureStorageService.getToken())!, event.taskId);
+        }
+      } else if (event.type == "confirm taken") {
         rs = await taskRepository.confirmTakenTasks(
             (await secureStorageService.getToken())!, event.taskId);
       } else if (event.type == "confirm delivering") {
@@ -561,7 +617,8 @@ class ConfirmTaskBloc extends Bloc<TaskEvent, TaskState> {
             event.taskId,
             event.reason);
       }
-      if (rs["success"]) {
+      print(rs);
+      if (!rs["success"]) {
         emit(FailedAcceptingTask(rs["message"]));
       } else {
         emit(AcceptedTask());

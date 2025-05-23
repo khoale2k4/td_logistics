@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tdlogistic_v2/auth/data/models/user_model.dart';
+import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
 import 'package:tdlogistic_v2/shipper/UI/screens/contact/chats_screen.dart';
 import 'package:tdlogistic_v2/shipper/UI/screens/map_widget.dart';
 import 'package:tdlogistic_v2/shipper/UI/screens/tasks.dart';
@@ -35,6 +36,8 @@ class _ShipperNavigatePageState extends State<ShipperNavigatePage> {
   int page = 1;
   bool isLoadingMore = false;
   late User user;
+  final secureStorageService = SecureStorageService();
+  String shipperType = "LT";
 
   // Các trang scaffold khác nhau
   List<Widget> _pages = [];
@@ -52,9 +55,19 @@ class _ShipperNavigatePageState extends State<ShipperNavigatePage> {
       ShipperInfor(user: user),
     ];
 
+    // Gọi hàm async riêng
+    _initAsync();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PendingOrderBloc>().add(GetPendingTask());
     });
+  }
+
+  Future<void> _initAsync() async {
+    shipperType = await secureStorageService.getShipperType() ?? "LT";
+
+    // Nếu bạn cần gọi setState sau khi lấy shipperType
+    setState(() {});
   }
 
   // Hàm cập nhật trang khi chọn tab khác
@@ -99,80 +112,79 @@ class _ShipperNavigatePageState extends State<ShipperNavigatePage> {
         ],
         type: BottomNavigationBarType.fixed, // Đảm bảo các tab không bị cuộn
       ),
-      floatingActionButton: BlocListener<PendingOrderBloc, TaskState>(
-        listener: (context, state) {
-          if (state is TaskLoaded) {
-            setState(() {
-              isLoadingMore = false;
-              if (page == 1) {
-                currTasks = state.tasks;
-              } else {
-                currTasks.addAll(state.tasks);
-              }
-            });
-          }
-        },
-        child: _currentIndex < 2
-            ? Stack(
-                children: [
-                  Positioned(
-                    bottom: _currentIndex == 1
-                        ? 70.0
-                        : 16.0,
-                    right: 13,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        buildBottomSheet(context);
-                      },
-                      backgroundColor: Colors.white60,
-                      child: const Icon(Icons.notifications_active_outlined),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: _currentIndex == 1
-                        ? 70.0 + 35
-                        : 16.0 + 35,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 20,
-                      ),
-                      child: Center(
-                        child: BlocBuilder<PendingOrderBloc, TaskState>(
-                          builder: (context, state) {
-                            if (state is TaskLoaded) {
-                              return Text(
-                                state.totalTasks.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              );
-                            }
-                            return const Text(
-                              "0",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            );
-                          },
+      floatingActionButton: shipperType == "NT"
+          ? BlocListener<PendingOrderBloc, TaskState>(
+              listener: (context, state) {
+                if (state is TaskLoaded) {
+                  setState(() {
+                    isLoadingMore = false;
+                    if (page == 1) {
+                      currTasks = state.tasks;
+                    } else {
+                      currTasks.addAll(state.tasks);
+                    }
+                  });
+                }
+              },
+              child: _currentIndex < 2
+                  ? Stack(
+                      children: [
+                        Positioned(
+                          bottom: _currentIndex == 1 ? 70.0 : 16.0,
+                          right: 13,
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              buildBottomSheet(context);
+                            },
+                            backgroundColor: Colors.white60,
+                            child:
+                                const Icon(Icons.notifications_active_outlined),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : Container(),
-      ),
+                        Positioned(
+                          right: 0,
+                          bottom: _currentIndex == 1 ? 70.0 + 35 : 16.0 + 35,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 20,
+                              minHeight: 20,
+                            ),
+                            child: Center(
+                              child: BlocBuilder<PendingOrderBloc, TaskState>(
+                                builder: (context, state) {
+                                  if (state is TaskLoaded) {
+                                    return Text(
+                                      state.totalTasks.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  }
+                                  return const Text(
+                                    "0",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Container(),
+            )
+          : null,
     );
   }
 
@@ -370,19 +382,50 @@ class _TasksNotificationsState extends State<TasksNotifications> {
                           ),
                         ],
                       )
-                    : const Center(
+                    : Center(
                         child: Column(
                           children: [
-                            Image(
+                            const Image(
                               image: AssetImage("lib/assets/done.png"),
                               height: 350,
                             ),
-                            Text(
+                            const Text(
                               'Hiện chưa có đơn hàng!',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20),
                             ),
-                            SizedBox(height: 200)
+                            ElevatedButton(
+                              onPressed: widget.isLoading
+                                  ? null
+                                  : () {
+                                      widget.onLoadMore();
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    widget.isLoading ? Colors.grey : mainColor,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: widget.isLoading
+                                  ? const Text(
+                                      'Đang tải',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Tải thêm',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(height: 200)
                           ],
                         ),
                       ),

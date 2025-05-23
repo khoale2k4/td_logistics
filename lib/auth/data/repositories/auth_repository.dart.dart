@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:tdlogistic_v2/core/constant.dart';
+import 'package:tdlogistic_v2/core/service/send_location.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
@@ -90,12 +91,16 @@ class AuthRepository {
           await http.get(url, headers: {"authorization": "Bearer $token"});
       dynamic responseData = jsonDecode(response.body);
       if (responseData["data"] == null) {
+        print("staff");
         url = Uri.parse('$baseUrl/staff/');
         response =
             await http.get(url, headers: {"authorization": "Bearer $token"});
+            print(response.body);
       }
       responseData = jsonDecode(response.body);
-      return User.fromJson(responseData["data"]);
+      final user = User.fromJson(responseData["data"]);
+      print(user);
+      return user;
     } catch (error) {
       print("error getting user info ${error.toString()}");
       return null;
@@ -138,7 +143,7 @@ class AuthRepository {
         return {
           "success": true,
           "message": jsonDecode(response.body)["message"],
-          "data": User.fromJson(jsonDecode(response.body)["data"]),
+          "data": jsonDecode(response.body)["data"],
           "token": sidToken
         };
       } else {

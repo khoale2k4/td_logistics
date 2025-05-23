@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:tdlogistic_v2/core/models/order_model.dart';
+import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
 import 'package:tdlogistic_v2/shipper/UI/screens/map2markers.dart';
 import 'package:tdlogistic_v2/shipper/UI/screens/signature_screen.dart';
 import 'package:tdlogistic_v2/shipper/bloc/task_bloc.dart';
@@ -13,6 +13,7 @@ import 'package:tdlogistic_v2/shipper/bloc/task_state.dart';
 import 'package:tdlogistic_v2/shipper/data/models/task.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TasksWidget extends StatefulWidget {
   const TasksWidget({super.key});
@@ -25,7 +26,6 @@ class _TasksWidgetState extends State<TasksWidget>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? qrController;
   int rcPage = 1;
   int sdPage = 1;
 
@@ -44,7 +44,6 @@ class _TasksWidgetState extends State<TasksWidget>
 
   @override
   void dispose() {
-    qrController?.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -90,42 +89,6 @@ class _TasksWidgetState extends State<TasksWidget>
         children: const [ReceiveOrdersTab(), SendOrdersTab()],
       ),
     );
-  }
-
-  void _showQRScanner() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Quét mã QR"),
-          content: SizedBox(
-            width: 300,
-            height: 300,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                qrController?.pauseCamera();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Đóng'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    qrController = controller;
-    controller.scannedDataStream.listen((scanData) {
-      // Xử lý dữ liệu sau khi quét QR
-      print(scanData.code);
-    });
   }
 }
 
@@ -522,13 +485,15 @@ class _TaskListViewState extends State<TaskListView> {
                         '${task.order?.mass?.toStringAsFixed(2) ?? ''} kg',
                         Icons.line_weight),
                     _buildOrderDetailTile(
-                        'Phí',
-                        '${task.order?.fee?.toStringAsFixed(2) ?? ''} VNĐ',
-                        Icons.attach_money,
-                        qrData: (!task.order!.paid! &&
-                                (isSender == task.order!.receiverWillPay))
-                            ? task.order?.qrcode
-                            : ""),
+                      'Phí (${(task.order?.receiverWillPay ?? false) ? "Người nhận trả" : "Người gửi trả"})',
+                      '${task.order?.fee?.toString() ?? ''} VNĐ',
+                      Icons.attach_money,
+                      qrData: (task.order != null &&
+                              task.order!.paid == false &&
+                              isSender == task.order!.receiverWillPay)
+                          ? ""
+                          : task.order?.qrcode ?? "",
+                    ),
                     _buildOrderDetailTile(
                         'Trạng thái thanh toán',
                         (task.order!.paid!)
@@ -788,7 +753,7 @@ class _TaskListViewState extends State<TaskListView> {
                 isSign: isSign),
           );
 
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 5));
       context.read<GetImagesShipBloc>().add(GetOrderImages(orderId));
     } catch (error) {
       print("Error updating images: $error");
@@ -897,20 +862,20 @@ class _TaskListViewState extends State<TaskListView> {
                 onPressed: () {
                   _onAddSignaturePressed(context, signature, orderId, category);
                 },
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text(
-                    'Thêm ảnh',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  'Thêm ảnh',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                ),
               )
             : Container(),
       ],
@@ -978,41 +943,30 @@ class _TaskListViewState extends State<TaskListView> {
 
   Widget _buildOrderDetailTile(String title, String? value, IconData icon,
       {String address = "", String qrData = ""}) {
-    void showQrDialog() {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Thanh toán"),
-            content: SizedBox(
-              // Wrap QrImage in a Container
-              width: 200,
-              height: 200,
-              child: QrImageView(
-                data: qrData,
-                version: QrVersions.auto,
-                size: 200.0,
-                errorStateBuilder: (context, error) {
-                  return const Center(child: Text("Không thể tạo mã QR"));
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text("Đóng"),
-              ),
-            ],
-          );
-        },
-      );
+    Future<void> showQrDialog() async {
+      final url = Uri.parse(qrData);
+      try {
+        print('Launching URL: $url');
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else {
+          print('Cannot launch URL');
+        }
+      } catch (error) {
+        print("Error lauching url " + error.toString());
+      }
     }
 
     return icon == Icons.phone
         ? InkWell(
-            onTap: () {},
+            onTap: () async {
+              final Uri url = Uri(scheme: 'tel', path: value);
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              } else {
+                print('Không thể gọi đến số: $value');
+              }
+            },
             child: ListTile(
               leading: Icon(icon, color: Colors.green),
               title: Text(
@@ -1193,13 +1147,19 @@ class _TaskListViewState extends State<TaskListView> {
     // Kiểm tra xem widget có còn trong cây không trước khi thực hiện các thao tác async
     if (!mounted) return;
 
-    context.read<ConfirmTaskBloc>().add(ConfirmTask(taskId, "confirm taken"));
-    await Future.delayed(const Duration(seconds: 1));
+    SecureStorageService service = SecureStorageService();
+    final shipperType = await service.getShipperType() ?? "LT";
+    if (shipperType == "LT") {
+      context.read<ConfirmTaskBloc>().add(ConfirmTask(taskId, "confirm taken"));
+    } else {
+      context.read<ConfirmTaskBloc>().add(ConfirmTask(taskId, "confirm taken"));
+      await Future.delayed(const Duration(seconds: 1));
 
-    if (!mounted) return;
-    context
-        .read<ConfirmTaskBloc>()
-        .add(ConfirmTask(taskId, "confirm delivering"));
+      if (!mounted) return;
+      context
+          .read<ConfirmTaskBloc>()
+          .add(ConfirmTask(taskId, "confirm delivering"));
+    }
   }
 
   void _showConfirmationDialog(
@@ -1282,7 +1242,7 @@ class _TaskListViewState extends State<TaskListView> {
                   ListTile(
                     title: const Text('Khách hàng từ chối đưa/nhận hàng'),
                     leading: Radio<String>(
-                      value: 'CUSTOMER_CANCELING',
+                      value: 'CUSTOMER_CANCELLING',
                       groupValue: selectedReason,
                       onChanged: (value) {
                         setState(() {

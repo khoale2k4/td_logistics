@@ -13,12 +13,11 @@ var host = "";
 var baseUrll = "";
 
 Future<void> updateEnv() async {
-  print("in env");
   await dotenv.load(fileName: ".env");
-  print("done loading");
   ggApiKey = dotenv.env['GG_API_KEY']!;
   host = dotenv.env['HOST']!;
   baseUrll = "${host}/v3";
 }
 
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM4MGZiYTNlLTJlNGItNDg1Yy1iMGYxLTFkYmJjYzg5ODFkNyIsInJvbGVzIjpbIkNVU1RPTUVSIl0sImlhdCI6MTczMjUyNDMwOCwiZXhwIjoxNzM2MTI0MzA4fQ.URFejsni08Fj5F96NlyNVIk5UY9Ye-7YlR52-rbl5Kc";
+const token = "";
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM4MGZiYTNlLTJlNGItNDg1Yy1iMGYxLTFkYmJjYzg5ODFkNyIsInJvbGVzIjpbIkNVU1RPTUVSIl0sImlhdCI6MTczMjUyNDMwOCwiZXhwIjoxNzM2MTI0MzA4fQ.URFejsni08Fj5F96NlyNVIk5UY9Ye-7YlR52-rbl5Kc

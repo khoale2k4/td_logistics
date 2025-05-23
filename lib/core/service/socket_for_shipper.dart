@@ -1,7 +1,7 @@
 // ignore_for_file: library_prefixes
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tdlogistic_v2/auth/data/models/user_model.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
@@ -56,33 +56,41 @@ class _SocketPageState extends State<SocketPage> {
     });
   }
 
-  void connectToSocket() {
-    Future<void> _showNotification(String title, String message) async {
-      print("Đang hiển thị thông báo: $title - $title");
-      const AndroidNotificationDetails androidPlatformChannelSpecifics =
-          AndroidNotificationDetails(
-        '123',
-        'tdlogistic',
-        importance: Importance.max,
-        priority: Priority.high,
-        showWhen: false,
-      );
-      const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-          DarwinNotificationDetails();
-      const NotificationDetails platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics,
-      );
-      await flutterLocalNotificationsPlugin.show(
-        0,
-        title,
-        message,
-        platformChannelSpecifics,
-        payload: 'new item',
-      );
-    }
+  Future<void> connectToSocket() async {
+    // Future<void> _showNotification(String title, String message) async {
+    //   print("Đang hiển thị thông báo showNotification: $title - $message");
+    //   const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    //       AndroidNotificationDetails(
+    //     '123',
+    //     'tdlogistic',
+    //     importance: Importance.max,
+    //     priority: Priority.high,
+    //     showWhen: false,
+    //   );
+    //   const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+    //       DarwinNotificationDetails();
+    //   const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    //     android: androidPlatformChannelSpecifics,
+    //     iOS: iOSPlatformChannelSpecifics,
+    //   );
+    //   await flutterLocalNotificationsPlugin.show(
+    //     0,
+    //     title,
+    //     message,
+    //     platformChannelSpecifics,
+    //     payload: 'new item',
+    //   );
+    // }
 
     print('Bearer $token');
+    // await NotificationService.instance.init();
+    // void showNotification(String title, String body, String type) async {
+    //   await NotificationService.instance.showNotification(
+    //     id: 0,
+    //     title: title,
+    //     body: body,
+    //   );
+    // }
     try {
       socket = IO.io(
         host,
@@ -103,15 +111,15 @@ class _SocketPageState extends State<SocketPage> {
         print('Received message: $data');
         if (data['category'] == 'ORDER' && data['type'] == 'PENDING') {
           try {
-            _showNotification("Đơn hàng mới", data['message']);
+            // showNotification("Đơn hàng mới", data['message'], 'new item');
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context.read<PendingOrderBloc>().add(GetPendingTask());
             });
           } catch (error) {
             print("Lỗi khi nhận đơn hàng từ socket: ${error.toString()}");
           }
-        } else if(data['senderId'] != null) {
-          _showNotification("Tin nhắn mới!", "Bạn có một tin nhắn từ ...");
+        } else if (data['senderId'] != null) {
+          // showNotification("Tin nhắn mới!", "Bạn có một tin nhắn từ ...", 'new message');
           context.read<GetChatShipBloc>().add(NewMessage(data['content'], " "));
         }
       });

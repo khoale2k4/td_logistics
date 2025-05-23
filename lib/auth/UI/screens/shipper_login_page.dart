@@ -16,8 +16,8 @@ class StaffLoginPage extends StatefulWidget {
 }
 
 class _StaffLoginPageState extends State<StaffLoginPage> {
-  final TextEditingController _usernameController = TextEditingController(text: "minhluxuan");
-  final TextEditingController _passwordController = TextEditingController(text: "LUXUANMINH2k4");
+  final TextEditingController _usernameController = TextEditingController(text: "levodangkhoatg2497");
+  final TextEditingController _passwordController = TextEditingController(text: "xP7gPB");
   bool hidePass = true;
 
   void toggleHidePass(){

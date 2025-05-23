@@ -24,8 +24,9 @@ class User {
     String? createdAt;
     String? updatedAt;
     List<Roles>? roles;
+    String? shipperType;
 
-    User({this.id, this.username, this.staffId, this.agencyId, this.firstName, this.lastName, this.fullname, this.phoneNumber, this.email, this.cccd, this.province, this.district, this.town, this.detailAddress, this.birthDate, this.bin, this.bank, this.deposit, this.salary, this.paidSalary, this.avatar, this.createdAt, this.updatedAt, this.roles});
+    User({this.id, this.username, this.staffId, this.agencyId, this.firstName, this.lastName, this.fullname, this.phoneNumber, this.email, this.cccd, this.province, this.district, this.town, this.detailAddress, this.birthDate, this.bin, this.bank, this.deposit, this.salary, this.paidSalary, this.avatar, this.createdAt, this.updatedAt, this.roles, this.shipperType});
 
     User.fromJson(Map<String, dynamic> json) {
         id = json["id"];
@@ -51,6 +52,7 @@ class User {
         avatar = json["avatar"];
         createdAt = json["createdAt"];
         updatedAt = json["updatedAt"];
+        shipperType = json["shipperType"]?["type"];
         roles = json["roles"] == null ? null : (json["roles"] as List).map((e) => Roles.fromJson(e)).toList();
     }
 
@@ -79,6 +81,7 @@ class User {
         data["avatar"] = avatar;
         data["createdAt"] = createdAt;
         data["updatedAt"] = updatedAt;
+        data["shipperType"]["type"] = shipperType;
         if(roles != null) {
             data["roles"] = roles?.map((e) => e.toJson()).toList();
         }

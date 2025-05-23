@@ -60,7 +60,7 @@ class _Map2MarkersState extends State<Map2Markers>
       _routePoints = await _getRoutePoints(_startLatLng!, _endLatLng!);
     }
 
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<Position> _getCurrentLocation() async {

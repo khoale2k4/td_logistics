@@ -148,8 +148,11 @@
                 "fresh": "Đồ tươi sống",
                 "others": "Khác"
             },
-            "eco_transmit": "Giao hàng tiết kiệm",
-            "quick_transmit" : "Giao hàng nhanh"
+            "eco_transmit": "Siêu rẻ",
+            "quick_transmit" : "Siêu nhanh",
+            "hht": "HTT: Giao hàng hoả tốc",
+            "ttk": "TTK: Giao hàng tiết kiệm",
+            "cpn": "CPN: Chuyển phát nhanh"
         },
         "payment_page": {
             "title": "Thông tin thanh toán",

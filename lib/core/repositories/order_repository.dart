@@ -14,7 +14,7 @@ import 'package:tdlogistic_v2/customer/data/models/shipping_bill.dart';
 class OrderRepository {
   final String baseUrl = baseUrll;
 
-  Future<Map<String, dynamic>> getOrders(String token,
+  Future<Map<String, dynamic>> getOrders(String token, String customerId,
       {String status = "", int page = 1}) async {
     try {
       final url = Uri.parse('$baseUrl/order/search');
@@ -22,10 +22,7 @@ class OrderRepository {
         'Content-Type': 'application/json',
         "authorization": "Bearer $token"
       };
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: json.encode(
+      final body = 
           {
             "addition": {"sort": [], "page": page, "size": 10, "group": []},
             "criteria": [
@@ -33,24 +30,21 @@ class OrderRepository {
                 "field": "statusCode",
                 "operator": (status == "CANCEL" ? "~" : "="),
                 "value": status
+              },
+              {
+                "field": "customerId",
+                "operator": "=",
+                "value": customerId
               }
             ]
-          },
-        ),
+          };
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode(body),
       );
 
-      print(json.encode(
-        {
-          "addition": {"sort": [], "page": page, "size": 10, "group": []},
-          "criteria": [
-            {
-              "field": "statusCode",
-              "operator": (status == "CANCEL" ? "~" : "="),
-              "value": status
-            }
-          ]
-        },
-      ));
+      print(body);
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200) {
@@ -394,6 +388,49 @@ class OrderRepository {
       final response = await http.get(
         url,
         headers: headers,
+      );
+
+      final responseData = json.decode(response.body);
+      print(responseData);
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": responseData["message"],
+          "data": responseData["data"],
+        };
+      } else {
+        return {
+          "success": false,
+          "message": responseData["message"],
+          "data": responseData["data"],
+        };
+      }
+    } catch (error) {
+      print("Error getting shipper orders: ${error.toString()}");
+      return {"success": false, "message": error.toString(), "data": null};
+    }
+  }
+
+  Future<Map<String, dynamic>> getPendingOrders(String token) async {
+    try {
+      final url = Uri.parse('$baseUrl/sending_order_request/search');
+      final headers = {
+        'Content-Type': 'application/json',
+        "authorization": "Bearer $token"
+      };
+      final body = json.encode(
+          {
+            "addition": {"sort": [], "page": 1, "size": 5, "group": []},
+            "criteria": [
+              {"field": "status", "operator": "=", "value": "PENDING"}
+            ]
+          },
+        );
+        print(body);
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: body,
       );
 
       final responseData = json.decode(response.body);
