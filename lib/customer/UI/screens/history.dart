@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:tdlogistic_v2/core/models/order_model.dart';
 import 'package:tdlogistic_v2/core/repositories/order_repository.dart';
 import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
@@ -14,6 +16,7 @@ import 'package:tdlogistic_v2/customer/bloc/order_event.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_state.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class History extends StatefulWidget {
   final Function(String, String) sendMessage;
@@ -31,6 +34,16 @@ class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(_handleTabSelection);
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cần cấp quyền vị trí để sử dụng tính năng này')),
+      );
+    }
   }
 
   @override
@@ -496,6 +509,8 @@ class OrderListView extends StatefulWidget {
 
 class _OrderListViewState extends State<OrderListView> {
   var secureStorageService = SecureStorageService();
+  Position? _currentPosition;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -711,6 +726,8 @@ class _OrderListViewState extends State<OrderListView> {
                 _buildOrderDetailTile(
                   context.tr("history.senderAddress"),
                   '${order.provinceSource ?? ''}, ${order.districtSource ?? ''}, ${order.wardSource ?? ''}, ${order.detailSource ?? ''}',
+                  sendAddress: '${order.detailSource ?? ''}, ${order.wardSource ?? ''}, ${order.districtSource ?? ''}, ${order.provinceSource ?? ''}',
+                  receiveAddress: '${order.detailDest ?? ''}, ${order.wardDest ?? ''}, ${order.districtDest ?? ''}, ${order.provinceDest ?? ''}',
                   Icons.location_on,
                 ),
                 const Divider(),
@@ -721,6 +738,8 @@ class _OrderListViewState extends State<OrderListView> {
                 _buildOrderDetailTile(
                   context.tr("history.receiverAddress"),
                   '${order.provinceDest ?? ''}, ${order.districtDest ?? ''}, ${order.wardDest ?? ''}, ${order.detailDest ?? ''}',
+                  sendAddress: '${order.detailSource ?? ''}, ${order.wardSource ?? ''}, ${order.districtSource ?? ''}, ${order.provinceSource ?? ''}',
+                  receiveAddress: '${order.detailDest ?? ''}, ${order.wardDest ?? ''}, ${order.districtDest ?? ''}, ${order.provinceDest ?? ''}',
                   Icons.location_on,
                 ),
                 const Divider(),
@@ -955,15 +974,18 @@ class _OrderListViewState extends State<OrderListView> {
     return icon == Icons.location_on
         ? InkWell(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Map2Markers(
-                    startAddress: sendAddress,
-                    endAddress: receiveAddress,
-                  ),
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => Map2Markers(
+              //       startAddress: sendAddress,
+              //       endAddress: receiveAddress,
+              //     ),
+              //   ),
+              // );
+              _openGoogleMaps(sendAddress, receiveAddress);
+              print(sendAddress);
+              print(receiveAddress);
             },
             child: ListTile(
               leading: Icon(icon, color: Colors.green),
@@ -1314,6 +1336,24 @@ class _OrderListViewState extends State<OrderListView> {
         );
       },
     );
+  }
+
+  Future<void> _openGoogleMaps(String startAddress, String destinationAddress) async {
+    // URL scheme để mở Google Maps
+    final url = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1'
+      '&origin=${Uri.encodeComponent(startAddress)}'
+      '&destination=${Uri.encodeComponent(destinationAddress)}'
+      '&travelmode=driving'
+    );
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể mở Google Maps')),
+      );
+    }
   }
 }
 

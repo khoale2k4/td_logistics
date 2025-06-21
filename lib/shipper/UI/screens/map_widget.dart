@@ -608,8 +608,8 @@ class _MapWidgetState extends State<MapWidget> {
 
           // My location button
           Positioned(
-            bottom: 150,
-            right: 20,
+            bottom: 10,
+            right: 30,
             child: FloatingActionButton(
               onPressed: _goToMyLocation,
               backgroundColor: Colors.white,

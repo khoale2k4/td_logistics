@@ -134,7 +134,7 @@ class LocationTrackerService {
 
   Future<void> _sendLocationToAPI(
       double latitude, double longitude, String taskId, String token) async {
-    print("Sending $taskId's location: lat: $latitude, long: $longitude");
+    // print("Sending $taskId's location: lat: $latitude, long: $longitude");
     // return;
     try {
       final response = await http.post(
@@ -151,9 +151,9 @@ class LocationTrackerService {
       // print(response.body);
 
       if (response.statusCode == 201) {
-        print('Location sent successfully sendLocation to task');
+        // print('Location sent successfully sendLocation to task');
       } else {
-        print('Failed to send location sendLocation to task');
+        // print('Failed to send location sendLocation to task');
       }
     } catch (error) {
       print("Lỗi khi gửi toạ độ: $error");
@@ -162,7 +162,7 @@ class LocationTrackerService {
 
   Future<void> _updateStatus(
       double latitude, double longitude, String token) async {
-    print("Sending my location: lat: $latitude, long: $longitude");
+    // print("Sending my location: lat: $latitude, long: $longitude");
     // return;
     try {
       final response = await http.post(
@@ -176,12 +176,12 @@ class LocationTrackerService {
           'currentLong': longitude,
         }),
       );
-      print(response.body);
+      // print(response.body);
 
       if (response.statusCode == 201) {
-        print('Location sent successfully update status');
+        // print('Location sent successfully update status');
       } else {
-        print('Failed to send location update status');
+        // print('Failed to send location update status');
       }
     } catch (error) {
       print("Lỗi khi gửi toạ độ: $error");

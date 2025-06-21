@@ -411,16 +411,18 @@ class OrderRepository {
     }
   }
 
-  Future<Map<String, dynamic>> getPendingOrders(String token) async {
+  Future<Map<String, dynamic>> getPendingOrders(String token, {int page = 1}) async {
     try {
       final url = Uri.parse('$baseUrl/sending_order_request/search');
+      print(url);
       final headers = {
         'Content-Type': 'application/json',
         "authorization": "Bearer $token"
       };
+      print(token);
       final body = json.encode(
           {
-            "addition": {"sort": [], "page": 1, "size": 5, "group": []},
+            "addition": {"sort": [], "page": page, "size": 5, "group": []},
             "criteria": [
               {"field": "status", "operator": "=", "value": "PENDING"}
             ]

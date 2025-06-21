@@ -216,6 +216,9 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               initialCenter: MapHelpers.gmapsToFlutterMap(widget.startLocation),
               initialZoom: 12.0,
+              interactionOptions: const InteractionOptions(
+                flags: ~InteractiveFlag.rotate,
+              ),
             ),
             children: [
               TileLayer(

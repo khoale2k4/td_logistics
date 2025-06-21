@@ -83,10 +83,80 @@ class _CreateOrderState extends State<CreateOrder> {
   bool _validLocation = true;
   bool _validAddress = true;
 
-  bool validePhone(String phone) {
-    if (phone.length > 11 || phone.length < 10) return false;
-    if (phone[0] != '0') return false;
-    return true;
+  bool validateInternationalPhone(String phone) {
+    // Loại bỏ tất cả khoảng trắng và ký tự không phải số/dấu +
+    final cleanedPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Danh sách mã quốc gia phổ biến (có thể mở rộng)
+    const countryCodes = {
+      'VN': {
+        'code': '84',
+        'length': 9,
+        'minLength': 9,
+        'maxLength': 10
+      }, // Việt Nam
+      'US': {'code': '1', 'length': 10, 'minLength': 10, 'maxLength': 10}, // Mỹ
+      'UK': {
+        'code': '44',
+        'length': 10,
+        'minLength': 9,
+        'maxLength': 10
+      }, // Anh
+      'SG': {
+        'code': '65',
+        'length': 8,
+        'minLength': 8,
+        'maxLength': 8
+      }, // Singapore
+      'JP': {
+        'code': '81',
+        'length': 10,
+        'minLength': 9,
+        'maxLength': 10
+      }, // Nhật
+      'KR': {
+        'code': '82',
+        'length': 9,
+        'minLength': 9,
+        'maxLength': 10
+      }, // Hàn Quốc
+    };
+
+    // Kiểm tra số có mã quốc gia (bắt đầu bằng +)
+    if (cleanedPhone.startsWith('+')) {
+      for (final country in countryCodes.values) {
+        final code = country['code'] as String;
+        if (cleanedPhone.startsWith('+$code')) {
+          final phoneNumber = cleanedPhone.substring(1 + code.length);
+          final minLen = country['minLength'] as int;
+          final maxLen = country['maxLength'] as int;
+          return phoneNumber.length >= minLen &&
+              phoneNumber.length <= maxLen &&
+              RegExp(r'^\d+$').hasMatch(phoneNumber);
+        }
+      }
+      return false; // Không khớp mã quốc gia nào
+    }
+    // Kiểm tra số không có mã quốc gia (bắt đầu bằng 0)
+    else if (cleanedPhone.startsWith('0')) {
+      return RegExp(r'^0\d{9,11}$')
+          .hasMatch(cleanedPhone); // Mặc định cho số VN
+    }
+    // Kiểm tra số có mã quốc gia không có dấu +
+    else {
+      for (final country in countryCodes.values) {
+        final code = country['code'] as String;
+        if (cleanedPhone.startsWith(code)) {
+          final phoneNumber = cleanedPhone.substring(code.length);
+          final minLen = country['minLength'] as int;
+          final maxLen = country['maxLength'] as int;
+          return phoneNumber.length >= minLen &&
+              phoneNumber.length <= maxLen &&
+              RegExp(r'^\d+$').hasMatch(phoneNumber);
+        }
+      }
+      return false;
+    }
   }
 
   bool _validateInputs() {
@@ -126,32 +196,142 @@ class _CreateOrderState extends State<CreateOrder> {
   bool _goodTypeValid = true;
 
   Future<Map<String, String?>> _pickContact(BuildContext context) async {
-    if (await FlutterContacts.requestPermission()) {
-      final contacts = await FlutterContacts.getContacts(withProperties: true);
+    try {
+      // Kiểm tra và yêu cầu quyền truy cập danh bạ
+      final permissionGranted = await FlutterContacts.requestPermission();
+      if (!permissionGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bạn cần cấp quyền để truy cập danh bạ'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return {};
+      }
 
+      // Lấy danh sách liên hệ
+      final contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+        withThumbnail: true,
+        sorted: true,
+      );
+
+      // Biến để lưu kết quả tìm kiếm
+      final searchController = TextEditingController();
+      List<Contact> filteredContacts = List.from(contacts);
+
+      // Hiển thị bottom sheet với giao diện cải tiến
       final selectedContact = await showModalBottomSheet<Contact?>(
         context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
         builder: (BuildContext context) {
-          return ListView(
-            children: contacts
-                .map(
-                  (contact) => ListTile(
-                    title: Text(contact.displayName),
-                    subtitle: Text(
-                      contact.phones.isNotEmpty
-                          ? contact.phones.first.number
-                          : 'Không có số điện thoại',
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height * 0.8,
+                child: Column(
+                  children: [
+                    // Header với nút đóng và tiêu đề
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Chọn liên hệ',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
                     ),
-                    onTap: () {
-                      Navigator.pop(context, contact);
-                    },
-                  ),
-                )
-                .toList(),
+
+                    // Thanh tìm kiếm
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Tìm kiếm liên hệ...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            filteredContacts = contacts.where((contact) {
+                              final name = contact.displayName.toLowerCase();
+                              final phone = contact.phones.isNotEmpty
+                                  ? contact.phones.first.number.toLowerCase()
+                                  : '';
+                              return name.contains(value.toLowerCase()) ||
+                                  phone.contains(value.toLowerCase());
+                            }).toList();
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Danh sách liên hệ
+                    Expanded(
+                      child: filteredContacts.isEmpty
+                          ? const Center(
+                              child: Text('Không tìm thấy liên hệ phù hợp'),
+                            )
+                          : ListView.builder(
+                              itemCount: filteredContacts.length,
+                              itemBuilder: (context, index) {
+                                final contact = filteredContacts[index];
+                                return ListTile(
+                                  leading: contact.thumbnail != null
+                                      ? CircleAvatar(
+                                          backgroundImage:
+                                              MemoryImage(contact.thumbnail!),
+                                        )
+                                      : const CircleAvatar(
+                                          child: Icon(Icons.person),
+                                        ),
+                                  title: Text(
+                                    contact.displayName,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                  subtitle: Text(
+                                    contact.phones.isNotEmpty
+                                        ? contact.phones.first.number
+                                        : 'Không có số điện thoại',
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap: () {
+                                    Navigator.pop(context, contact);
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           );
         },
       );
 
+      // Trả về thông tin liên hệ đã chọn
       if (selectedContact != null) {
         return {
           'name': selectedContact.displayName,
@@ -160,9 +340,13 @@ class _CreateOrderState extends State<CreateOrder> {
               : null,
         };
       }
-    } else {
+    } catch (e) {
+      debugPrint('Lỗi khi truy cập danh bạ: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bạn cần cấp quyền để truy cập danh bạ.')),
+        const SnackBar(
+          content: Text('Đã xảy ra lỗi khi truy cập danh bạ'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
     return {};
@@ -247,7 +431,7 @@ class _CreateOrderState extends State<CreateOrder> {
   bool _validateNumberInputs() {
     setState(() {
       _isReceiverNameValid = _receiverNameController.text != "";
-      _isReceiverPhoneValid = validePhone(_receiverPhoneController.text);
+      _isReceiverPhoneValid = validateInternationalPhone(_receiverPhoneController.text);
       _isWeightValid = (_selectedWeightRange != -1 || _isBulky);
       _goodTypeValid = (_selectedGoodsType != null);
     });
@@ -322,6 +506,17 @@ class _CreateOrderState extends State<CreateOrder> {
       context.read<GetLocationBloc>().add(GetLocations());
     });
     _initializeData();
+    _requestPhonePermission();
+  }
+
+  Future<void> _requestPhonePermission() async {
+    final status = await Permission.contacts.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Cần cấp quyền vị trí để sử dụng tính năng này')),
+      );
+    }
   }
 
   Future<void> _initializeData() async {
@@ -1226,8 +1421,8 @@ Số lượng hình ảnh đính kèm: ${_images.length}
                   onTap: () async {
                     final contact = await _pickContact(context);
                     if (contact != null) {
-                      controller.text = contact['phone'] ?? '';
-                      onChanged(controller.text);
+                      _receiverNameController.text = contact['name'] ?? '';
+                      _receiverPhoneController.text = contact['phone'] ?? '';
                     }
                     print("SMTH");
                   },

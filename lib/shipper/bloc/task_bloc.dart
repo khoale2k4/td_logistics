@@ -286,12 +286,15 @@ class GetImagesShipBloc extends Bloc<TaskEvent, TaskState> {
   GetImagesShipBloc({required this.secureStorageService})
       : super(GettingImages()) {
     on<GetOrderImages>(getImages);
+    on<AddImageEvent>(updateImages);
+    on<DeleteImage>(deleteImage);
   }
 
   Future<void> getImages(event, emit) async {
     emit(GettingImages());
 
     try {
+      print("getImages" + event.runtimeType.toString());
       final order = await orderRepository.getOrderById(
           event.orderId, (await secureStorageService.getToken())!);
       if (order["success"]) {
@@ -340,6 +343,58 @@ class GetImagesShipBloc extends Bloc<TaskEvent, TaskState> {
       print("Error getting images: ${error.toString()}");
       emit(GotImages(
           const [], const [], null, "", const [], const [], null, ""));
+    }
+  }
+
+  Future<void> updateImages(event, emit) async {
+    emit(GettingImages());
+    try {
+      final tempDir = await getTemporaryDirectory();
+      List<File> files = [];
+      for (int i = 0; i < event.curImages.length; i++) {
+        File file = await File('${tempDir.path}/image_$i.png').create();
+        file.writeAsBytesSync(event.curImages[i]);
+        files.add(file);
+      }
+      if (event.newImage != null) {
+        File file =
+            await File('${tempDir.path}/image_${event.curImages.length}.png')
+                .create();
+        file.writeAsBytesSync(event.newImage);
+        files.add(file);
+      }
+      final upImageRs = await orderRepository.updateImage(event.orderId, files,
+          event.category, (await secureStorageService.getToken())!,
+          isSign: event.isSign);
+      if (upImageRs["success"]) {
+        emit(AddedImage());
+        print(event.runtimeType);
+        await getImages(event, emit);
+        // emit(GotImages(receiveImages, receiveIds, receiveSignature, receiveSignId, sendImages, sendIds, sendSignature, sendSignId))
+      } else {
+        print("Lỗi khi lấy hình: " + upImageRs['message']);
+        emit(FailedImage(upImageRs['message']));
+      }
+    } catch (error) {
+      emit(FailedImage(error.toString()));
+    }
+  }
+
+  Future<void> deleteImage(event, emit) async {
+    emit(AddingImage());
+    try {
+      print("Delete image" + event.id);
+      final deleteImage = await orderRepository.deleteFile(
+          event.id, (await secureStorageService.getToken())!,
+          isSign: true);
+      print(deleteImage);
+      if (deleteImage["success"]) {
+        emit(AddedImage());
+      } else {
+        emit(FailedImage(deleteImage['message']));
+      }
+    } catch (error) {
+      emit(FailedImage(error.toString()));
     }
   }
 }
@@ -544,7 +599,8 @@ class PendingOrderBloc extends Bloc<TaskEvent, TaskState> {
         final List<Task> updatedTasks = [];
 
         final fetchTask = await orderRepository
-            .getPendingOrders((await secureStorageService.getToken())!);
+            .getPendingOrders((await secureStorageService.getToken())!, page: event.page);
+            print(fetchTask);
         // await orderRepository.getOrders(
         //     (await secureStorageService.getToken())!,
         //     status: "PROCESSING",

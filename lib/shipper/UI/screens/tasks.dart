@@ -759,7 +759,7 @@ class _TaskListViewState extends State<TaskListView> {
       Uint8List? newImage, String category, String orderId,
       {bool isSign = false}) async {
     try {
-      context.read<UpdateImagesShipBloc>().add(
+      context.read<GetImagesShipBloc>().add(
             AddImageEvent(
                 curImages: const [],
                 orderId: orderId,
@@ -768,8 +768,8 @@ class _TaskListViewState extends State<TaskListView> {
                 isSign: isSign),
           );
 
-      await Future.delayed(const Duration(seconds: 5));
-      context.read<GetImagesShipBloc>().add(GetOrderImages(orderId));
+      // await Future.delayed(const Duration(seconds: 5));
+      // context.read<GetImagesShipBloc>().add(GetOrderImages(orderId));
     } catch (error) {
       print("Error updating images: $error");
     }

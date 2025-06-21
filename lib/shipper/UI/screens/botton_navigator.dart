@@ -122,6 +122,13 @@ class _ShipperNavigatePageState extends State<ShipperNavigatePage> {
                       currTasks = state.tasks;
                     } else {
                       currTasks.addAll(state.tasks);
+                      // Thêm kiểm tra trước khi truy cập phần tử đầu tiên
+                      if (state.tasks.isNotEmpty) {
+                        print('state.tasks[0].id' + state.tasks[0].id!);
+                      }
+                      for (final task in currTasks) {
+                        print('state.task.id' + task.id!);
+                      }
                     }
                   });
                 }
@@ -159,7 +166,7 @@ class _ShipperNavigatePageState extends State<ShipperNavigatePage> {
                                 builder: (context, state) {
                                   if (state is TaskLoaded) {
                                     return Text(
-                                      state.totalTasks.toString(),
+                                      currTasks.length.toString(),
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
@@ -330,8 +337,55 @@ class _TasksNotificationsState extends State<TasksNotifications> {
               const Divider(),
               RefreshIndicator(
                 onRefresh: widget.reload,
-                child: widget.tasks.isNotEmpty
-                    ? Column(
+                child: (widget.tasks == null || widget.tasks.isEmpty)
+                    ? Center(
+                        child: Column(
+                          children: [
+                            const Image(
+                              image: AssetImage("lib/assets/done.png"),
+                              height: 350,
+                            ),
+                            const Text(
+                              'Hiện chưa có đơn hàng!',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20),
+                            ),
+                            ElevatedButton(
+                              onPressed: widget.isLoading
+                                  ? null
+                                  : () {
+                                      widget.onLoadMore();
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    widget.isLoading ? Colors.grey : mainColor,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: widget.isLoading
+                                  ? const Text(
+                                      'Đang tải',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Tải thêm',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(height: 200)
+                          ],
+                        ),
+                      )
+                    : Column(
                         children: [
                           ConstrainedBox(
                             constraints: BoxConstraints(
@@ -381,53 +435,6 @@ class _TasksNotificationsState extends State<TasksNotifications> {
                                   ),
                           ),
                         ],
-                      )
-                    : Center(
-                        child: Column(
-                          children: [
-                            const Image(
-                              image: AssetImage("lib/assets/done.png"),
-                              height: 350,
-                            ),
-                            const Text(
-                              'Hiện chưa có đơn hàng!',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                            ElevatedButton(
-                              onPressed: widget.isLoading
-                                  ? null
-                                  : () {
-                                      widget.onLoadMore();
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    widget.isLoading ? Colors.grey : mainColor,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              child: widget.isLoading
-                                  ? const Text(
-                                      'Đang tải',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Tải thêm',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
-                            const SizedBox(height: 200)
-                          ],
-                        ),
                       ),
               ),
             ],
@@ -518,10 +525,10 @@ class _TasksNotificationsState extends State<TasksNotifications> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(8),
         title: Text(
-          task.order!.trackingNumber!,
+          task.order?.trackingNumber ?? 'Không có mã tracking',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(task.order!.detailSource!),
+        subtitle: Text(task.order?.detailSource ?? 'Không có mô tả'),
         trailing: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green.shade100,
@@ -530,7 +537,9 @@ class _TasksNotificationsState extends State<TasksNotifications> {
             ),
           ),
           onPressed: () {
-            confirmTask(context, task.id!);
+            if (task.id != null) {
+              confirmTask(context, task.id!);
+            }
           },
           child: const Text(
             'Xác nhận',
