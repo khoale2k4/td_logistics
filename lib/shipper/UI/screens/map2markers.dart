@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 import 'package:http/http.dart' as http;
-import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
-
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:location/location.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
+import 'package:tdlogistic_v2/shipper/UI/widgets/search_bar.dart';
 
 class Map2Markers extends StatefulWidget {
   final String endAddress;
@@ -19,75 +20,48 @@ class Map2Markers extends StatefulWidget {
   _Map2MarkersState createState() => _Map2MarkersState();
 }
 
-class _Map2MarkersState extends State<Map2Markers>
-    with SingleTickerProviderStateMixin {
-  late GoogleMapController mapController;
-  LatLng? _startLatLng;
-  LatLng? _endLatLng;
-  List<LatLng> _routePoints = [];
+class _Map2MarkersState extends State<Map2Markers> {
+  late MapController mapController;
+  latlong.LatLng? _startLatLng;
+  latlong.LatLng? _endLatLng;
+  List<latlong.LatLng> _routePoints = [];
   double _currentZoom = 12.0;
-
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-  bool _isExpanded = false;
-
   final String _apiKey = ggApiKey;
+  final Location _location = Location();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    mapController = MapController();
     _initializeRoute();
-
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
   }
 
   Future<void> _initializeRoute() async {
-    // Lấy vị trí hiện tại của người dùng
-    final position = await _getCurrentLocation();
-    _startLatLng = LatLng(position.latitude, position.longitude);
+    setState(() => _isLoading = true);
+    try {
+      // Lấy vị trí hiện tại của người dùng
+      final currentLocation = await _location.getLocation();
+      _startLatLng =
+          latlong.LatLng(currentLocation.latitude!, currentLocation.longitude!);
 
-    // Lấy tọa độ điểm đến từ địa chỉ
-    _endLatLng = await _getLatLngFromAddress(widget.endAddress);
+      // Lấy tọa độ điểm đến từ địa chỉ
+      _endLatLng = await _getLatLngFromAddress(widget.endAddress);
 
-    // Kiểm tra và lấy route nếu cả 2 tọa độ có sẵn
-    if (_startLatLng != null && _endLatLng != null) {
-      _routePoints = await _getRoutePoints(_startLatLng!, _endLatLng!);
-    }
-
-    if (mounted) setState(() {});
-  }
-
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Dịch vụ định vị không bật');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Quyền định vị bị từ chối');
+      // Kiểm tra và lấy route nếu cả 2 tọa độ có sẵn
+      if (_startLatLng != null && _endLatLng != null) {
+        await _calculateRoute(_startLatLng!, _endLatLng!);
+      }
+    } catch (e) {
+      debugPrint("Error initializing route: $e");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Quyền định vị bị từ chối vĩnh viễn');
-    }
-
-    return await Geolocator.getCurrentPosition();
   }
 
-  Future<LatLng?> _getLatLngFromAddress(String address) async {
+  Future<latlong.LatLng?> _getLatLngFromAddress(String address) async {
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$_apiKey',
     );
@@ -97,62 +71,65 @@ class _Map2MarkersState extends State<Map2Markers>
       final data = json.decode(response.body);
       if (data['results'].isNotEmpty) {
         final location = data['results'][0]['geometry']['location'];
-        return LatLng(location['lat'], location['lng']);
+        return latlong.LatLng(location['lat'], location['lng']);
       }
     }
     return null;
   }
 
-  Future<List<LatLng>> _getRoutePoints(LatLng start, LatLng end) async {
-    final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/directions/json?origin=${start.latitude},${start.longitude}&destination=${end.latitude},${end.longitude}&key=$_apiKey',
-    );
+  Future<void> _calculateRoute(latlong.LatLng start, latlong.LatLng end) async {
+    try {
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${start.latitude},${start.longitude}&destination=${end.latitude},${end.longitude}&key=$_apiKey',
+      );
 
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['routes'].isNotEmpty) {
-        List<LatLng> routePoints = [];
-        for (var step in data['routes'][0]['legs'][0]['steps']) {
-          final startLat = step['start_location']['lat'];
-          final startLng = step['start_location']['lng'];
-          final endLat = step['end_location']['lat'];
-          final endLng = step['end_location']['lng'];
-          routePoints.add(LatLng(startLat, startLng));
-          routePoints.add(LatLng(endLat, endLng));
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['routes'].isNotEmpty) {
+          final points = PolylinePoints()
+              .decodePolyline(data['routes'][0]['overview_polyline']['points']);
+
+          setState(() {
+            _routePoints = points
+                .map((point) => latlong.LatLng(point.latitude, point.longitude))
+                .toList();
+          });
+
+          // Di chuyển camera để hiển thị toàn bộ route
+          _moveToBounds();
         }
-        return routePoints;
       }
+    } catch (e) {
+      debugPrint("Error calculating route: $e");
     }
-    return [];
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
-  void _moveToLocation(LatLng location) {
-    mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: location,
-          zoom: 15,
+  void _moveToBounds() {
+    if (_startLatLng != null && _endLatLng != null) {
+      final bounds = LatLngBounds(
+        _startLatLng!,
+        _endLatLng!,
+      );
+      mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: bounds,
+          padding: const EdgeInsets.all(100),
         ),
-      ),
-    );
+      );
+    }
   }
 
-  final Location _location = Location();
   Future<void> _goToMyLocation() async {
-    var currentLocation = await _location.getLocation();
-    mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-          zoom: 15,
-        ),
-      ),
-    );
+    try {
+      var currentLocation = await _location.getLocation();
+      mapController.move(
+        latlong.LatLng(currentLocation.latitude!, currentLocation.longitude!),
+        15.0,
+      );
+    } catch (e) {
+      debugPrint("Error getting current location: $e");
+    }
   }
 
   @override
@@ -160,40 +137,75 @@ class _Map2MarkersState extends State<Map2Markers>
     return Scaffold(
       body: Stack(
         children: [
-          if (_startLatLng != null && _endLatLng != null)
-            GoogleMap(
-              onMapCreated: _onMapCreated,
-              myLocationButtonEnabled: false,
-              myLocationEnabled: true,
-              zoomControlsEnabled: false,
-              initialCameraPosition: CameraPosition(
-                target: _startLatLng!,
-                zoom: _currentZoom,
+          FlutterMap(
+            mapController: mapController,
+            options: MapOptions(
+              initialCenter:
+                  _startLatLng ?? const latlong.LatLng(10.8231, 106.6297),
+              initialZoom: _currentZoom,
+              interactionOptions: const InteractionOptions(
+                flags: ~InteractiveFlag.rotate,
               ),
-              markers: {
-                Marker(
-                  markerId: const MarkerId("start"),
-                  position: _startLatLng!,
-                  infoWindow: const InfoWindow(title: "Vị trí của bạn"),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueBlue),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.tdlogistics.app',
+              ),
+              if (_routePoints.isNotEmpty)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: _routePoints,
+                      color: Colors.blue,
+                      strokeWidth: 5,
+                    ),
+                  ],
                 ),
-                Marker(
-                  markerId: const MarkerId("end"),
-                  position: _endLatLng!,
-                  infoWindow: const InfoWindow(title: "Điểm đến"),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueRed),
+              if (_startLatLng != null && _endLatLng != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _startLatLng!,
+                      width: 40,
+                      height: 40,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: const Icon(
+                          Icons.location_pin,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                    Marker(
+                      point: _endLatLng!,
+                      width: 40,
+                      height: 40,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: const Icon(
+                          Icons.location_pin,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              },
-              polylines: {
-                Polyline(
-                  polylineId: const PolylineId("route"),
-                  points: _routePoints,
-                  color: Colors.blue,
-                  width: 5,
-                ),
-              },
+            ],
+          ),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
             ),
           Positioned(
             bottom: 20,
@@ -215,7 +227,7 @@ class _Map2MarkersState extends State<Map2Markers>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
-                onPressed: () => {Navigator.of(context).pop()},
+                onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.keyboard_return,
                     size: 30, color: Colors.black),
               ),

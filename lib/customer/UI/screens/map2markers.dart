@@ -44,7 +44,7 @@ class _Map2MarkersState extends State<Map2Markers>
 
   Future<LatLng?> _getLatLngFromAddress(String address) async {
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$_apiKey',
+      'https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=$_apiKey',
     );
 
     final response = await http.get(url);

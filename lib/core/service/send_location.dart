@@ -50,10 +50,10 @@ class LocationTrackerService {
     Geolocator.getPositionStream(locationSettings: locationSettings).listen(
       (Position position) {
         // Send the current position to the API every 10 seconds
-        // curLat = position.latitude;
-        curLat = 10.3490625;
-        curLng = 107.0762525;
-        // curLng = position.longitude;
+        curLat = position.latitude;
+        // curLat = 10.3490625;
+        // curLng = 107.0762525;
+        curLng = position.longitude;
         Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
           await _updateStatus(curLat, curLng, token);
         });
@@ -97,10 +97,10 @@ class LocationTrackerService {
         Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
           if (calculateDistance(
               curLat, curLng, position.latitude, position.longitude)) {
-            // curLat = position.latitude;
-            curLat = 10.5417397;
-            curLng = 107.2429976;
-            // curLng = position.longitude;
+            curLat = position.latitude;
+            // curLat = 10.5417397;
+            // curLng = 107.2429976;
+            curLng = position.longitude;
             try {
               for (String taskIs in taskIds) {
                 await _sendLocationToAPI(curLat, curLng, taskIs, token);

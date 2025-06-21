@@ -57,7 +57,7 @@ class _MapWidgetState extends State<MapWidget> {
       setState(() {
         _startLocation = point;
         _isSelectingStart = false;
-        
+
         // Remove old start marker if exists
         _markers.removeWhere((marker) => marker.key == const Key('start'));
         _markers.add(Marker(
@@ -78,10 +78,11 @@ class _MapWidgetState extends State<MapWidget> {
             ),
           ),
         ));
-        
-        _startSearchController.text = "Vị trí đã chọn (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})";
+
+        _startSearchController.text =
+            "Vị trí đã chọn (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})";
       });
-      
+
       if (_endLocation != null) {
         _calculateRoute();
       }
@@ -89,7 +90,7 @@ class _MapWidgetState extends State<MapWidget> {
       setState(() {
         _endLocation = point;
         _isSelectingEnd = false;
-        
+
         // Remove old end marker if exists
         _markers.removeWhere((marker) => marker.key == const Key('end'));
         _markers.add(Marker(
@@ -110,10 +111,11 @@ class _MapWidgetState extends State<MapWidget> {
             ),
           ),
         ));
-        
-        _endSearchController.text = "Vị trí đã chọn (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})";
+
+        _endSearchController.text =
+            "Vị trí đã chọn (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})";
       });
-      
+
       if (_startLocation != null) {
         _calculateRoute();
       }
@@ -122,13 +124,13 @@ class _MapWidgetState extends State<MapWidget> {
 
   Future<void> _moveToLocation(String address, bool isStart) async {
     if (address.isEmpty) return;
-    
+
     print("🔍 Searching for address: '$address'");
-    
+
     final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$_apiKey');
     print("🌐 API URL: $url");
-    
+
     final response = await http.get(url);
     print("📡 Response status: ${response.statusCode}");
     print("📡 Response body: ${response.body}");
@@ -137,17 +139,18 @@ class _MapWidgetState extends State<MapWidget> {
       final data = json.decode(response.body);
       print("📊 API Status: ${data['status']}");
       print("📊 Results count: ${data['results']?.length ?? 0}");
-      
+
       if (data['status'] != 'OK') {
-        _showSnackBar("API Error: ${data['status']} - ${data['error_message'] ?? 'Unknown error'}");
+        _showSnackBar(
+            "API Error: ${data['status']} - ${data['error_message'] ?? 'Unknown error'}");
         return;
       }
-      
+
       if (data['results'].isNotEmpty) {
         final location = data['results'][0]['geometry']['location'];
         final latLng = latlong.LatLng(location['lat'], location['lng']);
         final formattedAddress = data['results'][0]['formatted_address'];
-        
+
         print("✅ Found location: $formattedAddress at $latLng");
 
         if (mapController != null) {
@@ -218,7 +221,7 @@ class _MapWidgetState extends State<MapWidget> {
     }
   }
 
-  bool _isLoading = false; 
+  bool _isLoading = false;
   String? _error;
 
   Future<void> _calculateRoute() async {
@@ -245,11 +248,11 @@ class _MapWidgetState extends State<MapWidget> {
 
         if (data['status'] == 'OK') {
           final List<latlong.LatLng> polylineCoordinates = [];
-          
+
           // Get route information
           final route = data['routes'][0];
           final leg = route['legs'][0];
-          
+
           setState(() {
             _distance = leg['distance']['text'];
             _duration = leg['duration']['text'];
@@ -261,7 +264,8 @@ class _MapWidgetState extends State<MapWidget> {
 
           // Chuyển đổi points thành LatLng
           for (var point in points) {
-            polylineCoordinates.add(latlong.LatLng(point.latitude, point.longitude));
+            polylineCoordinates
+                .add(latlong.LatLng(point.latitude, point.longitude));
           }
 
           setState(() {
@@ -276,13 +280,15 @@ class _MapWidgetState extends State<MapWidget> {
               _startLocation!,
               _endLocation!,
             );
-            
+
             if (mapController != null) {
-              mapController!.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(100)));
+              mapController!.fitCamera(CameraFit.bounds(
+                  bounds: bounds, padding: const EdgeInsets.all(100)));
             }
           });
         } else {
-          setState(() => _error = 'Không thể tìm được đường đi: ${data['status']}');
+          setState(
+              () => _error = 'Không thể tìm được đường đi: ${data['status']}');
         }
       }
     } catch (e) {
@@ -308,7 +314,7 @@ class _MapWidgetState extends State<MapWidget> {
 
   Future<void> _goToMyLocation() async {
     try {
-    var currentLocation = await _location.getLocation();
+      var currentLocation = await _location.getLocation();
       if (mapController != null) {
         mapController!.move(
           latlong.LatLng(currentLocation.latitude!, currentLocation.longitude!),
@@ -340,6 +346,9 @@ class _MapWidgetState extends State<MapWidget> {
               initialCenter: _currentPosition,
               initialZoom: 12.0,
               onTap: _onMapTap,
+              interactionOptions: const InteractionOptions(
+                flags: ~InteractiveFlag.rotate,
+              ),
             ),
             children: [
               TileLayer(
@@ -349,15 +358,15 @@ class _MapWidgetState extends State<MapWidget> {
               ),
               if (_polylines.isNotEmpty)
                 PolylineLayer(
-            polylines: _polylines,
-          ),
+                  polylines: _polylines,
+                ),
               if (_markers.isNotEmpty)
                 MarkerLayer(
                   markers: _markers,
                 ),
             ],
           ),
-          
+
           // Search bars và controls
           Positioned(
             top: 50,
@@ -372,12 +381,15 @@ class _MapWidgetState extends State<MapWidget> {
                       child: MySearchBar(
                         controller: _startSearchController,
                         labelText: 'Điểm bắt đầu',
-                        icon: const Icon(Icons.location_on, color: Colors.green),
-                        onTap: () => _moveToLocation(_startSearchController.text, true),
+                        icon:
+                            const Icon(Icons.location_on, color: Colors.green),
+                        onTap: () =>
+                            _moveToLocation(_startSearchController.text, true),
                         onChanged: () {},
                         onDelete: () => setState(() {
                           _startLocation = null;
-                          _markers.removeWhere((marker) => marker.key == const Key('start'));
+                          _markers.removeWhere(
+                              (marker) => marker.key == const Key('start'));
                           _polylines.clear();
                           _distance = null;
                           _duration = null;
@@ -389,12 +401,15 @@ class _MapWidgetState extends State<MapWidget> {
                       decoration: BoxDecoration(
                         color: _isSelectingStart ? mainColor : Colors.white,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _isSelectingStart ? mainColor : Colors.grey),
+                        border: Border.all(
+                            color: _isSelectingStart ? mainColor : Colors.grey),
                       ),
                       child: IconButton(
                         icon: Icon(
                           Icons.touch_app,
-                          color: _isSelectingStart ? Colors.white : Colors.grey[600],
+                          color: _isSelectingStart
+                              ? Colors.white
+                              : Colors.grey[600],
                         ),
                         onPressed: () => setState(() {
                           _isSelectingStart = !_isSelectingStart;
@@ -405,9 +420,9 @@ class _MapWidgetState extends State<MapWidget> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 10),
-                
+
                 // End location search
                 Row(
                   children: [
@@ -416,11 +431,13 @@ class _MapWidgetState extends State<MapWidget> {
                         controller: _endSearchController,
                         labelText: 'Điểm đến',
                         icon: const Icon(Icons.location_on, color: Colors.blue),
-                        onTap: () => _moveToLocation(_endSearchController.text, false),
+                        onTap: () =>
+                            _moveToLocation(_endSearchController.text, false),
                         onChanged: () {},
                         onDelete: () => setState(() {
                           _endLocation = null;
-                          _markers.removeWhere((marker) => marker.key == const Key('end'));
+                          _markers.removeWhere(
+                              (marker) => marker.key == const Key('end'));
                           _polylines.clear();
                           _distance = null;
                           _duration = null;
@@ -432,12 +449,14 @@ class _MapWidgetState extends State<MapWidget> {
                       decoration: BoxDecoration(
                         color: _isSelectingEnd ? mainColor : Colors.white,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _isSelectingEnd ? mainColor : Colors.grey),
+                        border: Border.all(
+                            color: _isSelectingEnd ? mainColor : Colors.grey),
                       ),
                       child: IconButton(
                         icon: Icon(
                           Icons.touch_app,
-                          color: _isSelectingEnd ? Colors.white : Colors.grey[600],
+                          color:
+                              _isSelectingEnd ? Colors.white : Colors.grey[600],
                         ),
                         onPressed: () => setState(() {
                           _isSelectingEnd = !_isSelectingEnd;
@@ -448,7 +467,7 @@ class _MapWidgetState extends State<MapWidget> {
                     ),
                   ],
                 ),
-                
+
                 // Route actions
                 if (_startLocation != null || _endLocation != null)
                   Container(
@@ -469,7 +488,7 @@ class _MapWidgetState extends State<MapWidget> {
                       ],
                     ),
                   ),
-                
+
                 // Selection instruction
                 if (_isSelectingStart || _isSelectingEnd)
                   Container(
@@ -486,16 +505,17 @@ class _MapWidgetState extends State<MapWidget> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            _isSelectingStart 
-                              ? 'Tap trên bản đồ để chọn điểm bắt đầu'
-                              : 'Tap trên bản đồ để chọn điểm đến',
-                            style: TextStyle(color: mainColor, fontWeight: FontWeight.w500),
+                            _isSelectingStart
+                                ? 'Tap trên bản đồ để chọn điểm bắt đầu'
+                                : 'Tap trên bản đồ để chọn điểm đến',
+                            style: TextStyle(
+                                color: mainColor, fontWeight: FontWeight.w500),
                           ),
                         ),
                       ],
                     ),
                   ),
-                
+
                 // Loading indicator
                 if (_isLoading)
                   Container(
@@ -520,7 +540,7 @@ class _MapWidgetState extends State<MapWidget> {
                       ],
                     ),
                   ),
-                
+
                 // Route information
                 if (_distance != null && _duration != null)
                   Container(
@@ -559,7 +579,7 @@ class _MapWidgetState extends State<MapWidget> {
                       ],
                     ),
                   ),
-                
+
                 // Error display
                 if (_error != null)
                   Container(
@@ -585,7 +605,7 @@ class _MapWidgetState extends State<MapWidget> {
               ],
             ),
           ),
-          
+
           // My location button
           Positioned(
             bottom: 150,

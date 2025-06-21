@@ -30,8 +30,9 @@ Future<String?> convertLatLngToAddress(
 Future<Map<String, double>?> getLatLngFromAddress(String address) async {
   String apiKey = ggApiKey;
   final Uri url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey');
+      'https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=$apiKey');
 
+  print(url);
   final response = await http.get(url);
 
   // Kiểm tra nếu yêu cầu thành công

@@ -1,4 +1,3 @@
-
 class User {
     String? id;
     String? username;
@@ -81,7 +80,9 @@ class User {
         data["avatar"] = avatar;
         data["createdAt"] = createdAt;
         data["updatedAt"] = updatedAt;
-        data["shipperType"]["type"] = shipperType;
+        if (shipperType != null) {
+            data["shipperType"] = {"type": shipperType};
+        }
         if(roles != null) {
             data["roles"] = roles?.map((e) => e.toJson()).toList();
         }

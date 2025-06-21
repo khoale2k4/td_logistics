@@ -2,7 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:tdlogistic_v2/core/models/order_model.dart';
 import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
 import 'package:tdlogistic_v2/shipper/UI/screens/map2markers.dart';
@@ -174,6 +176,16 @@ class _SendOrdersTabState extends State<SendOrdersTab> {
   void initState() {
     super.initState();
     context.read<TaskBlocShipSend>().add(StartTask());
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cần cấp quyền vị trí để sử dụng tính năng này')),
+      );
+    }
   }
 
   @override
@@ -245,6 +257,9 @@ class TaskListView extends StatefulWidget {
 }
 
 class _TaskListViewState extends State<TaskListView> {
+  Position? _currentPosition;
+  bool _isLoading = false;
+  
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -996,14 +1011,15 @@ class _TaskListViewState extends State<TaskListView> {
             : icon == Icons.location_on
                 ? InkWell(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Map2Markers(
-                            endAddress: address,
-                          ),
-                        ),
-                      );
+                      _openGoogleMaps(value??"");
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => Map2Markers(
+                      //       endAddress: address,
+                      //     ),
+                      //   ),
+                      // );
                     },
                     child: ListTile(
                       leading: Icon(icon, color: Colors.green),
@@ -1321,6 +1337,46 @@ class _TaskListViewState extends State<TaskListView> {
         );
       },
     );
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLoading = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Dịch vụ định vị chưa được bật');
+      }
+
+      _currentPosition = await Geolocator.getCurrentPosition();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể lấy vị trí: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _openGoogleMaps(String destinationAddress) async {
+    if (_currentPosition == null) {
+      await _getCurrentLocation();
+    }
+
+    // URL scheme để mở Google Maps
+    final url = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1'
+      '&origin=${_currentPosition?.latitude},${_currentPosition?.longitude}'
+      '&destination=${Uri.encodeComponent(destinationAddress)}'
+      '&travelmode=driving'
+    );
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể mở Google Maps')),
+      );
+    }
   }
 }
 

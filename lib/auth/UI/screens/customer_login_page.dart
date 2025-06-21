@@ -16,8 +16,10 @@ class CustomerLoginPage extends StatefulWidget {
 }
 
 class _CustomerLoginPageState extends State<CustomerLoginPage> {
-  final TextEditingController _emailController = TextEditingController(text: "levodangkhoatg2@gmail.com");
-  final TextEditingController _phoneController = TextEditingController(text: "0708103015");
+  // final TextEditingController _emailController = TextEditingController(text: "levodangkhoatg2@gmail.com");
+  final TextEditingController _emailController = TextEditingController(text: "");
+  // final TextEditingController _phoneController = TextEditingController(text: "0708103015");
+  final TextEditingController _phoneController = TextEditingController(text: "");
 
   @override
   void initState() {
