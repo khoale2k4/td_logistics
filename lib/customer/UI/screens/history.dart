@@ -509,8 +509,6 @@ class OrderListView extends StatefulWidget {
 
 class _OrderListViewState extends State<OrderListView> {
   var secureStorageService = SecureStorageService();
-  Position? _currentPosition;
-  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -644,20 +642,6 @@ class _OrderListViewState extends State<OrderListView> {
         ),
       ],
     );
-  }
-
-  String _getLabelText() {
-    // switch (selectedFilter) {
-    //   case 'name':
-    //     return 'Tìm kiếm theo tên người nhận';
-    //   case 'location':
-    //     return 'Tìm kiếm theo địa điểm người nhận';
-    //   case 'phone':
-    //     return 'Tìm kiếm theo số điện thoại người nhận';
-    //   default:
-    //     return 'Tìm kiếm';
-    // }
-    return "";
   }
 
   void _showOrderDetailsBottomSheet(BuildContext context, Order order) {

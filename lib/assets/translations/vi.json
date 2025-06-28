@@ -11,7 +11,20 @@
     "home": {
         "voucher": "Khuyến mãi",
         "news": "Tin tức",
-        "orderNow": "Đặt ngay"
+        "orderNow": "Đặt hàng ngay",
+        "trackOrder": "Tra cứu đơn hàng",
+        "shipmentInfo": "Thông tin vận chuyển",
+        "enterOrderCode": "Nhập mã đơn hàng",
+        "senderInfo": "Thông tin người gửi",
+        "receiverInfo": "Thông tin người nhận",
+        "createOrder": "Tạo đơn hàng",
+        "features": "Dịch vụ của chúng tôi",
+        "feature1": "Chuyển phát nhanh",
+        "feature2": "Quốc tế",
+        "feature3": "Kho bãi",
+        "feature4": "Vận tải",
+        "feature5": "Thương mại điện tử",
+        "feature6": "Hỗ trợ"
     },
     "nav_bar": {
         "home": "Trang chủ",
@@ -102,7 +115,7 @@
             "name": "Tên người nhận",
             "phone": "SĐT người nhận",
             "correct_phone": "Vui lòng nhập đúng SĐT!",
-            "save" : "Lưu",
+            "save": "Lưu",
             "saved_locations": "Các địa điểm đã lưu",
             "button_label": "Nút",
             "myHome": "Nhà",
@@ -143,13 +156,13 @@
             "note": "Ghi chú đơn hàng",
             "good_types": {
                 "breakable": "Hàng dễ vỡ",
-                "food" : "Thực phẩm",
+                "food": "Thực phẩm",
                 "clothes": "Quần áo",
                 "fresh": "Đồ tươi sống",
                 "others": "Khác"
             },
             "eco_transmit": "Siêu rẻ",
-            "quick_transmit" : "Siêu nhanh",
+            "quick_transmit": "Siêu nhanh",
             "hht": "HTT: Giao hàng hoả tốc",
             "ttk": "TTK: Giao hàng tiết kiệm",
             "cpn": "CPN: Chuyển phát nhanh"
@@ -167,8 +180,8 @@
             "fee_not_calculated": "Chưa tính phí",
             "sender_pays": "Người gửi trả tiền",
             "voucher_selection": "Chọn voucher",
-            "discount" : "Voucher này giảm",
-            "choose" : "Chọn",
+            "discount": "Voucher này giảm",
+            "choose": "Chọn",
             "voucher_detail": "Chi tiết voucher"
         },
         "confirm_page": {
@@ -207,8 +220,8 @@
             "terms_highlight": "điều khoản",
             "create_order_button": "Tạo đơn hàng",
             "creating_order": "Đang tạo đơn hàng...",
-            "confirmation" : "Bạn có chắc chắn muốn tạo đơn hàng không?",
-            "confirm" : "Xác nhận",
+            "confirmation": "Bạn có chắc chắn muốn tạo đơn hàng không?",
+            "confirm": "Xác nhận",
             "cancel": "Huỷ"
         }
     },

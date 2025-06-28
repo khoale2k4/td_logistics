@@ -22,22 +22,17 @@ class OrderRepository {
         'Content-Type': 'application/json',
         "authorization": "Bearer $token"
       };
-      final body = 
+      final body = {
+        "addition": {"sort": [], "page": page, "size": 10, "group": []},
+        "criteria": [
           {
-            "addition": {"sort": [], "page": page, "size": 10, "group": []},
-            "criteria": [
-              {
-                "field": "statusCode",
-                "operator": (status == "CANCEL" ? "~" : "="),
-                "value": status
-              },
-              {
-                "field": "customerId",
-                "operator": "=",
-                "value": customerId
-              }
-            ]
-          };
+            "field": "statusCode",
+            "operator": (status == "CANCEL" ? "~" : "="),
+            "value": status
+          },
+          {"field": "customerId", "operator": "=", "value": customerId}
+        ]
+      };
       final response = await http.post(
         url,
         headers: headers,
@@ -47,6 +42,48 @@ class OrderRepository {
       print(body);
 
       final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": responseData["message"],
+          "data": responseData["data"],
+        };
+      } else {
+        return {
+          "success": false,
+          "message": responseData["message"],
+          "data": responseData["data"],
+        };
+      }
+    } catch (error) {
+      print("Error getting orders: ${error.toString()}");
+      return {"success": false, "message": error.toString(), "data": null};
+    }
+  }
+
+  Future<Map<String, dynamic>> getOrderByTrackingNumber(String trackingNumber, String token) async {
+    try {
+      final url = Uri.parse('$baseUrl/order/search');
+      final headers = {
+        'Content-Type': 'application/json',
+        "authorization": "Bearer $token"
+      };
+
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode(
+          {
+            "addition": {"sort": [], "page": 1, "size": 5, "group": []},
+            "criteria": [
+              {"field": "trackingNumber", "operator": "=", "value": trackingNumber}
+            ]
+          },
+        ),
+      );
+
+      final responseData = json.decode(response.body);
+      print(responseData);
       if (response.statusCode == 200) {
         return {
           "success": true,
@@ -140,11 +177,14 @@ class OrderRepository {
     }
   }
 
-  Future<dynamic> calculateFee(String token, CalculateFeePayLoad payload) async {
+  Future<dynamic> calculateFee(
+      String token, CalculateFeePayLoad payload) async {
     try {
       final url = Uri.parse('$baseUrl/order/fee/calculate');
-      final headers = {'Content-Type': 'application/json'
-      , "authorization": "Bearer $token"};
+      final headers = {
+        'Content-Type': 'application/json',
+        "authorization": "Bearer $token"
+      };
 
       final response = await http.post(
         url,
@@ -378,7 +418,7 @@ class OrderRepository {
     }
   }
 
-  Future<Map<String, dynamic>> getShipperOrders(String token,String id) async {
+  Future<Map<String, dynamic>> getShipperOrders(String token, String id) async {
     try {
       final url = Uri.parse('$baseUrl/order/shipper/get/$id');
       final headers = {
@@ -411,7 +451,8 @@ class OrderRepository {
     }
   }
 
-  Future<Map<String, dynamic>> getPendingOrders(String token, {int page = 1}) async {
+  Future<Map<String, dynamic>> getPendingOrders(String token,
+      {int page = 1}) async {
     try {
       final url = Uri.parse('$baseUrl/sending_order_request/search');
       print(url);
@@ -421,14 +462,14 @@ class OrderRepository {
       };
       print(token);
       final body = json.encode(
-          {
-            "addition": {"sort": [], "page": page, "size": 5, "group": []},
-            "criteria": [
-              {"field": "status", "operator": "=", "value": "PENDING"}
-            ]
-          },
-        );
-        print(body);
+        {
+          "addition": {"sort": [], "page": page, "size": 5, "group": []},
+          "criteria": [
+            {"field": "status", "operator": "=", "value": "PENDING"}
+          ]
+        },
+      );
+      print(body);
       final response = await http.post(
         url,
         headers: headers,
