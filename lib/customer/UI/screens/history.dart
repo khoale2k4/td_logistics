@@ -1,607 +1,325 @@
+import 'dart:async';
 import 'dart:typed_data';
-
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:tdlogistic_v2/core/models/order_model.dart';
 import 'package:tdlogistic_v2/core/repositories/order_repository.dart';
 import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/contact/chat_box.dart';
-import 'package:tdlogistic_v2/customer/UI/screens/map2markers.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/map_widget.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_bloc.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_event.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_state.dart';
-import 'package:tdlogistic_v2/core/constant.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class History extends StatefulWidget {
+class HistoryPage extends StatefulWidget {
   final Function(String, String) sendMessage;
-  const History({super.key, required this.sendMessage});
+  final Function() onCreateOrder;
+
+  const HistoryPage({
+    super.key,
+    required this.sendMessage,
+    required this.onCreateOrder,
+  });
 
   @override
-  State<History> createState() => _HistoryState();
+  State<HistoryPage> createState() => _HistoryPageState();
 }
 
-class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _HistoryPageState extends State<HistoryPage> {
+  // --- Quản lý trạng thái cho UI ---
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
+  // Trạng thái bộ lọc
+  String? _selectedStatus;
+  String _searchQuery = '';
+  int page = 1;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  String _selectedDateFilterLabel = 'Tất cả thời gian';
+
+  // Services & Data
+  final OrderRepository orderRepository = OrderRepository();
+  final SecureStorageService secureStorageService = SecureStorageService();
+  List<Order> _orders = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-    _tabController.addListener(_handleTabSelection);
     _requestLocationPermission();
-  }
-
-  Future<void> _requestLocationPermission() async {
-    final status = await Permission.location.request();
-    if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cần cấp quyền vị trí để sử dụng tính năng này')),
-      );
-    }
+    _fetchOrders();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
-  void _handleTabSelection() {
-    if (_tabController.indexIsChanging) {
-      // Call API based on the selected tab index
-      final status = _getOrderStatusByIndex(_tabController.index);
-      // context.read<OrderBlocSearchCus>().add(FetchOrdersByStatus(status));
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (!status.isGranted && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Cần cấp quyền vị trí để sử dụng tính năng này')),
+      );
     }
   }
 
-  String _getOrderStatusByIndex(int index) {
-    switch (index) {
-      case 0:
-        return 'processing';
-      case 1:
-        return 'shipping';
-      case 2:
-        return 'delivering';
-      case 3:
-        return 'cancelled';
-      case 4:
-        return 'completed';
-      default:
-        return '';
+  // --- Hàm gọi dữ liệu đã được hoàn thiện ---
+  Future<void> _fetchOrders() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    // Logic phỏng đoán tìm kiếm
+    String? searchPhone, searchName, searchTracking;
+    if (_searchQuery.isNotEmpty) {
+      final isPhoneNumber = RegExp(r'^[0-9]{9,11}$').hasMatch(_searchQuery);
+      final isTrackingCode =
+          RegExp(r'^[A-Z_a-z]+[0-9]+$').hasMatch(_searchQuery);
+      if (isPhoneNumber)
+        searchPhone = _searchQuery;
+      else if (isTrackingCode)
+        searchTracking = _searchQuery;
+      else
+        searchName = _searchQuery;
     }
+
+    try {
+      final token = await secureStorageService.getToken();
+      final customerId = await secureStorageService.getStaffId();
+      final status = _selectedStatus == null
+          ? ""
+          : (_selectedStatus == "cancelled"
+              ? "CANCEL"
+              : _selectedStatus?.toUpperCase());
+
+      // API của bạn cần được cập nhật để nhận startDate và endDate
+      final response = await orderRepository.getOrders(
+        token!,
+        customerId!,
+        page: page,
+        status: status ?? "",
+        phone: searchPhone,
+        name: searchName,
+        tracking: searchTracking,
+        startDate: _startDate?.toString(), // <-- THAM SỐ MỚI
+        endDate: _endDate?.toString(),     // <-- THAM SỐ MỚI
+      );
+
+      if (mounted && response["success"] == true) {
+        final List<dynamic> rawOrders = response["data"] as List;
+        final List<Order> fetchedOrders =
+            rawOrders.map((orderData) => Order.fromJson(orderData)).toList();
+        setState(() => _orders = fetchedOrders);
+      } else {
+        print("API Error: ${response['message']}");
+      }
+    } catch (error) {
+      print("Lỗi fetch order: " + error.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      setState(() => _searchQuery = query);
+      _fetchOrders();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 100,
+        title: Text(context.tr("history.title"),
+            style: const TextStyle(color: Colors.white)),
         backgroundColor: mainColor,
-        title: Column(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(30),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 5,
-                    spreadRadius: 1,
-                  ),
-                ],
+        actions: [
+          Tooltip(
+            message: context.tr("history.createOrder"),
+            child: IconButton(
+              icon: const Icon(Icons.add_circle_outline,
+                  color: Colors.white, size: 28),
+              onPressed: () => widget.onCreateOrder(),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.grey[100],
+      body: Column(
+        children: [
+          _buildFilterAndSearchControls(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildOrderList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterAndSearchControls() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 0),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            decoration: InputDecoration(
+              hintText: 'Tìm kiếm đơn hàng...',
+              prefixIcon: const Icon(Icons.search), // Bỏ PopupMenuButton
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.calendar_today_outlined),
+                onPressed: _showDateFilterOptions,
+                tooltip: "Lọc theo thời gian",
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(0),
-                      child: Image.asset(
-                        'lib/assets/logo.png',
-                        height: 75,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  );
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.grey[200],
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildActiveDateFilter(),
+          const SizedBox(height: 8),
+          _buildStatusFilterChips(),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveDateFilter() {
+    if (_startDate == null && _endDate == null) return const SizedBox.shrink();
+    return Chip(
+      label: Text(_selectedDateFilterLabel,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold)),
+      backgroundColor: secondColor,
+      deleteIcon: const Icon(Icons.close, size: 18, color: Colors.white),
+      onDeleted: () {
+        setState(() {
+          _startDate = null;
+          _endDate = null;
+          _selectedDateFilterLabel = 'Tất cả thời gian';
+        });
+        _fetchOrders();
+      },
+    );
+  }
+
+  Widget _buildStatusFilterChips() {
+    final statuses = {
+      null: context.tr("history.all"),
+      'processing': context.tr("history.processing"),
+      'taking': context.tr("history.taking"),
+      'delivering': context.tr("history.delivering"),
+      'received': context.tr("history.completed"),
+      'cancelled': context.tr("history.cancelled"),
+    };
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: statuses.entries.map((entry) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: ChoiceChip(
+              label: Text(entry.value),
+              selected: _selectedStatus == entry.key,
+              onSelected: (selected) {
+                setState(() => _selectedStatus = entry.key);
+                _fetchOrders();
+              },
+              backgroundColor: Colors.grey[200],
+              selectedColor: mainColor.withOpacity(0.1),
+              labelStyle: TextStyle(
+                color:
+                    _selectedStatus == entry.key ? mainColor : Colors.black,
+              ),
+              shape: StadiumBorder(
+                  side: BorderSide(
+                      color: _selectedStatus == entry.key
+                          ? mainColor.withOpacity(0.1)
+                          : Colors.grey.shade300)),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildOrderList() {
+    if (_orders.isEmpty && !_isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset("lib/assets/hoptrong.png", width: 150),
+            const SizedBox(height: 16),
+            Text(context.tr("history.noOrder"),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _fetchOrders,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8.0),
+        itemCount: _orders.length,
+        itemBuilder: (context, index) {
+          final order = _orders[index];
+          return Column(
+            children: [
+              ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.green.withOpacity(0.1),
+                  child: const Icon(Icons.local_shipping, color: Colors.green),
+                ),
+                title: Text(
+                  order.trackingNumber ?? '',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
+                ),
+                subtitle: _buildOrderDetails(order),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                tileColor: Colors.white,
+                onTap: () {
+                  _showOrderDetailsBottomSheet(context, order);
+                  context.read<GetImagesBloc>().add(GetOrderImages(order.id!));
                 },
               ),
-            ),
-          ],
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          indicatorColor: Colors.white,
-          labelStyle: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-            color: Colors.black,
-          ),
-          tabs: [
-            Tab(text: context.tr("history.processing")),
-            Tab(text: context.tr("history.taking")),
-            Tab(text: context.tr("history.delivering")),
-            Tab(text: context.tr("history.completed")),
-            Tab(text: context.tr("history.cancelled")),
-          ],
-        ),
+              SizedBox(height: 5),
+            ],
+          );
+        },
       ),
-      backgroundColor: Colors.white,
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          ProcessingOrdersTab(
-            sendMessage: widget.sendMessage,
-          ),
-          TakingOrdersTab(
-            sendMessage: widget.sendMessage,
-          ),
-          DeliveringOrdersTab(
-            sendMessage: widget.sendMessage,
-          ),
-          CompletedOrdersTab(
-            sendMessage: widget.sendMessage,
-          ),
-          CancelledOrdersTab(
-            sendMessage: widget.sendMessage,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ProcessingOrdersTab extends StatefulWidget {
-  final Function(String, String) sendMessage;
-  const ProcessingOrdersTab({super.key, required this.sendMessage});
-
-  @override
-  State<ProcessingOrdersTab> createState() => _ProcessingOrdersTabState();
-}
-
-class _ProcessingOrdersTabState extends State<ProcessingOrdersTab> {
-  List<Order> orders = [];
-
-  int page = 1;
-  bool isLoadingMore = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<ProcessingOrderBloc>().add(StartOrder());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<ProcessingOrderBloc, OrderState>(
-      listener: (context, state) {
-        if (state is OrderLoaded) {
-          setState(() {
-            isLoadingMore = false;
-            if (page == 1) {
-              orders = state.orders;
-            } else {
-              orders.addAll(state.orders);
-            }
-          });
-        }
-      },
-      child: Column(
-        children: [
-          Expanded(
-            child: OrderListView(
-              orders: orders,
-              refreshFunc: () async {
-                context.read<ProcessingOrderBloc>().add(StartOrder());
-                page = 1;
-              },
-              loadMoreFunc: () async {
-                if (!isLoadingMore) {
-                  setState(() {
-                    isLoadingMore = true;
-                  });
-                  page++;
-                  context
-                      .read<ProcessingOrderBloc>()
-                      .add(AddOrder(const [], page));
-                }
-              },
-              loading: isLoadingMore,
-              sendMessage: widget.sendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class TakingOrdersTab extends StatefulWidget {
-  final Function(String, String) sendMessage;
-  const TakingOrdersTab({super.key, required this.sendMessage});
-
-  @override
-  State<TakingOrdersTab> createState() => _TakingOrdersTabState();
-}
-
-class _TakingOrdersTabState extends State<TakingOrdersTab> {
-  List<Order> orders = [];
-  int page = 1;
-  bool isLoadingMore = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<TakingOrderBloc>().add(StartOrder());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<TakingOrderBloc, OrderState>(
-      listener: (context, state) {
-        if (state is OrderLoaded) {
-          setState(() {
-            isLoadingMore = false;
-            if (page == 1) {
-              orders = state.orders;
-            } else {
-              orders.addAll(state.orders);
-            }
-          });
-        }
-      },
-      child: Column(
-        children: [
-          Expanded(
-            child: OrderListView(
-              orders: orders,
-              refreshFunc: () async {
-                context.read<TakingOrderBloc>().add(StartOrder());
-
-                page = 1;
-              },
-              loadMoreFunc: () async {
-                if (!isLoadingMore) {
-                  setState(() {
-                    isLoadingMore = true;
-                  });
-                  page++;
-                  context.read<TakingOrderBloc>().add(AddOrder(const [], page));
-                }
-              },
-              loading: isLoadingMore,
-              sendMessage: widget.sendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class DeliveringOrdersTab extends StatefulWidget {
-  final Function(String, String) sendMessage;
-  const DeliveringOrdersTab({super.key, required this.sendMessage});
-
-  @override
-  State<DeliveringOrdersTab> createState() => _DeliveringOrdersTabState();
-}
-
-class _DeliveringOrdersTabState extends State<DeliveringOrdersTab> {
-  List<Order> orders = [];
-  int page = 1;
-  bool isLoadingMore = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<DeliveringOrderBloc>().add(StartOrder());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<DeliveringOrderBloc, OrderState>(
-      listener: (context, state) {
-        if (state is OrderLoaded) {
-          setState(() {
-            isLoadingMore = false;
-            if (page == 1) {
-              orders = state.orders;
-            } else {
-              orders.addAll(state.orders);
-            }
-          });
-        }
-      },
-      child: Column(
-        children: [
-          Expanded(
-            child: OrderListView(
-              orders: orders,
-              refreshFunc: () async {
-                context.read<DeliveringOrderBloc>().add(StartOrder());
-
-                page = 1;
-              },
-              loadMoreFunc: () async {
-                if (!isLoadingMore) {
-                  setState(() {
-                    isLoadingMore = true;
-                  });
-                  page++;
-                  context
-                      .read<DeliveringOrderBloc>()
-                      .add(AddOrder(const [], page));
-                }
-              },
-              loading: isLoadingMore,
-              sendMessage: widget.sendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CancelledOrdersTab extends StatefulWidget {
-  final Function(String, String) sendMessage;
-  const CancelledOrdersTab({super.key, required this.sendMessage});
-
-  @override
-  State<CancelledOrdersTab> createState() => _CancelledOrdersTabState();
-}
-
-class _CancelledOrdersTabState extends State<CancelledOrdersTab> {
-  List<Order> orders = [];
-  int page = 1;
-  bool isLoadingMore = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<CancelledOrderBloc>().add(StartOrder());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<CancelledOrderBloc, OrderState>(
-      listener: (context, state) {
-        if (state is OrderLoaded) {
-          setState(() {
-            isLoadingMore = false;
-            if (page == 1) {
-              orders = state.orders;
-            } else {
-              orders.addAll(state.orders);
-            }
-          });
-        }
-      },
-      child: Column(
-        children: [
-          Expanded(
-            child: OrderListView(
-              orders: orders,
-              refreshFunc: () async {
-                context.read<CancelledOrderBloc>().add(StartOrder());
-
-                page = 1;
-              },
-              loadMoreFunc: () async {
-                if (!isLoadingMore) {
-                  setState(() {
-                    isLoadingMore = true;
-                  });
-                  page++;
-                  context
-                      .read<CancelledOrderBloc>()
-                      .add(AddOrder(const [], page));
-                }
-              },
-              loading: isLoadingMore,
-              sendMessage: widget.sendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CompletedOrdersTab extends StatefulWidget {
-  final Function(String, String) sendMessage;
-  const CompletedOrdersTab({super.key, required this.sendMessage});
-
-  @override
-  State<CompletedOrdersTab> createState() => _CompletedOrdersTabState();
-}
-
-class _CompletedOrdersTabState extends State<CompletedOrdersTab> {
-  List<Order> orders = [];
-  int page = 1;
-  bool isLoadingMore = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<CompletedOrderBloc>().add(StartOrder());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<CompletedOrderBloc, OrderState>(
-      listener: (context, state) {
-        if (state is OrderLoaded) {
-          setState(() {
-            isLoadingMore = false;
-            if (page == 1) {
-              orders = state.orders;
-            } else {
-              orders.addAll(state.orders);
-            }
-          });
-        }
-      },
-      child: Column(
-        children: [
-          Expanded(
-            child: OrderListView(
-              orders: orders,
-              refreshFunc: () async {
-                context.read<CompletedOrderBloc>().add(StartOrder());
-
-                page = 1;
-              },
-              loadMoreFunc: () async {
-                if (!isLoadingMore) {
-                  setState(() {
-                    isLoadingMore = true;
-                  });
-                  page++;
-                  context
-                      .read<CompletedOrderBloc>()
-                      .add(AddOrder(const [], page));
-                }
-              },
-              loading: isLoadingMore,
-              sendMessage: widget.sendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class OrderListView extends StatefulWidget {
-  final List<Order> orders;
-  final Future<void> Function() refreshFunc;
-  final Future<void> Function() loadMoreFunc;
-  final Function(String, String) sendMessage;
-  final bool loading;
-
-  const OrderListView({
-    super.key,
-    required this.orders,
-    required this.refreshFunc,
-    required this.loadMoreFunc,
-    required this.loading,
-    required this.sendMessage,
-  });
-
-  @override
-  State<OrderListView> createState() => _OrderListViewState();
-}
-
-class _OrderListViewState extends State<OrderListView> {
-  var secureStorageService = SecureStorageService();
-
-  @override
-  Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: widget.refreshFunc,
-      child: widget.orders.isEmpty
-          ? Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Image(
-                      image: AssetImage("lib/assets/hoptrong.png"),
-                    ),
-                    Text(
-                      context.tr("history.noOrder"),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                    const SizedBox(height: 250),
-                  ],
-                ),
-              ),
-            )
-          : ListView.builder(
-              itemCount: widget.orders.length + 1,
-              itemBuilder: (context, index) {
-                if (index == widget.orders.length) {
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: widget.loading
-                          ? null
-                          : () {
-                              widget.loadMoreFunc();
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            widget.loading ? Colors.grey : mainColor,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: widget.loading
-                          ? Text(
-                              context.tr("history.loading"),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : Text(
-                              context.tr("history.loadMore"),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  );
-                } else {
-                  final order = widget.orders[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.green.withOpacity(0.1),
-                      child:
-                          const Icon(Icons.local_shipping, color: Colors.green),
-                    ),
-                    title: Text(
-                      order.trackingNumber ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                    subtitle: _buildOrderDetails(order),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    tileColor: Colors.white,
-                    onTap: () {
-                      _showOrderDetailsBottomSheet(context, order);
-                      context
-                          .read<GetImagesBloc>()
-                          .add(GetOrderImages(order.id!));
-                    },
-                  );
-                }
-              },
-            ),
     );
   }
 
@@ -642,6 +360,102 @@ class _OrderListViewState extends State<OrderListView> {
         ),
       ],
     );
+  }
+
+  void _showDateFilterOptions() {
+    // Code hiển thị bottom sheet để chọn ngày (không đổi)
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            _buildDateFilterTile('Hôm nay', _applyDateFilterForToday),
+            _buildDateFilterTile('Hôm qua', _applyDateFilterForYesterday),
+            _buildDateFilterTile(
+                '3 ngày qua', () => _applyDateFilterForLastDays(3)),
+            _buildDateFilterTile(
+                '7 ngày qua', () => _applyDateFilterForLastDays(7)),
+            _buildDateFilterTile(
+                '1 tháng qua', () => _applyDateFilterForLastMonths(1)),
+            _buildDateFilterTile(
+                '1 năm qua', () => _applyDateFilterForLastYears(1)),
+            _buildDateFilterTile(
+                '3 năm qua', () => _applyDateFilterForLastYears(3)),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.date_range_outlined),
+              title: const Text('Chọn khoảng thời gian...'),
+              onTap: _pickDateRange,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDateFilterTile(String title, VoidCallback onTap) {
+    // Code không đổi
+    return ListTile(
+      title: Text(title),
+      onTap: () {
+        Navigator.pop(context);
+        onTap();
+      },
+    );
+  }
+
+  void _applyDateFilter(String label, DateTime start, DateTime end) {
+    // Code không đổi
+    setState(() {
+      _selectedDateFilterLabel = label;
+      _startDate = DateTime(start.year, start.month, start.day);
+      _endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    });
+    _fetchOrders();
+  }
+
+  // Các hàm logic ngày tháng không đổi
+  void _applyDateFilterForToday() {
+    final now = DateTime.now();
+    _applyDateFilter('Hôm nay', now, now);
+  }
+
+  void _applyDateFilterForYesterday() {
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    _applyDateFilter('Hôm qua', yesterday, yesterday);
+  }
+
+  void _applyDateFilterForLastDays(int days) {
+    final now = DateTime.now();
+    _applyDateFilter(
+        '$days ngày qua', now.subtract(Duration(days: days - 1)), now);
+  }
+
+  void _applyDateFilterForLastMonths(int months) {
+    final now = DateTime.now();
+    _applyDateFilter('$months tháng qua',
+        DateTime(now.year, now.month - months, now.day), now);
+  }
+
+  void _applyDateFilterForLastYears(int years) {
+    final now = DateTime.now();
+    _applyDateFilter(
+        '$years năm qua', DateTime(now.year - years, now.month, now.day), now);
+  }
+
+  Future<void> _pickDateRange() async {
+    if (Navigator.canPop(context)) Navigator.pop(context);
+    DateTimeRange? picked = await showDateRangePicker(
+        context: context,
+        firstDate: DateTime(2020),
+        lastDate: DateTime.now(),
+        locale: context.locale);
+    if (picked != null) {
+      final label =
+          '${DateFormat.yMd().format(picked.start)} - ${DateFormat.yMd().format(picked.end)}';
+      _applyDateFilter(label, picked.start, picked.end);
+    }
   }
 
   void _showOrderDetailsBottomSheet(BuildContext context, Order order) {
@@ -710,8 +524,10 @@ class _OrderListViewState extends State<OrderListView> {
                 _buildOrderDetailTile(
                   context.tr("history.senderAddress"),
                   '${order.provinceSource ?? ''}, ${order.districtSource ?? ''}, ${order.wardSource ?? ''}, ${order.detailSource ?? ''}',
-                  sendAddress: '${order.detailSource ?? ''}, ${order.wardSource ?? ''}, ${order.districtSource ?? ''}, ${order.provinceSource ?? ''}',
-                  receiveAddress: '${order.detailDest ?? ''}, ${order.wardDest ?? ''}, ${order.districtDest ?? ''}, ${order.provinceDest ?? ''}',
+                  sendAddress:
+                      '${order.detailSource ?? ''}, ${order.wardSource ?? ''}, ${order.districtSource ?? ''}, ${order.provinceSource ?? ''}',
+                  receiveAddress:
+                      '${order.detailDest ?? ''}, ${order.wardDest ?? ''}, ${order.districtDest ?? ''}, ${order.provinceDest ?? ''}',
                   Icons.location_on,
                 ),
                 const Divider(),
@@ -722,8 +538,10 @@ class _OrderListViewState extends State<OrderListView> {
                 _buildOrderDetailTile(
                   context.tr("history.receiverAddress"),
                   '${order.provinceDest ?? ''}, ${order.districtDest ?? ''}, ${order.wardDest ?? ''}, ${order.detailDest ?? ''}',
-                  sendAddress: '${order.detailSource ?? ''}, ${order.wardSource ?? ''}, ${order.districtSource ?? ''}, ${order.provinceSource ?? ''}',
-                  receiveAddress: '${order.detailDest ?? ''}, ${order.wardDest ?? ''}, ${order.districtDest ?? ''}, ${order.provinceDest ?? ''}',
+                  sendAddress:
+                      '${order.detailSource ?? ''}, ${order.wardSource ?? ''}, ${order.districtSource ?? ''}, ${order.provinceSource ?? ''}',
+                  receiveAddress:
+                      '${order.detailDest ?? ''}, ${order.wardDest ?? ''}, ${order.districtDest ?? ''}, ${order.provinceDest ?? ''}',
                   Icons.location_on,
                 ),
                 const Divider(),
@@ -1116,7 +934,6 @@ class _OrderListViewState extends State<OrderListView> {
                             ),
                           ),
                         );
-                      
                       } catch (error) {
                         print(error.toString());
                       }
@@ -1322,14 +1139,13 @@ class _OrderListViewState extends State<OrderListView> {
     );
   }
 
-  Future<void> _openGoogleMaps(String startAddress, String destinationAddress) async {
+  Future<void> _openGoogleMaps(
+      String startAddress, String destinationAddress) async {
     // URL scheme để mở Google Maps
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1'
-      '&origin=${Uri.encodeComponent(startAddress)}'
-      '&destination=${Uri.encodeComponent(destinationAddress)}'
-      '&travelmode=driving'
-    );
+    final url = Uri.parse('https://www.google.com/maps/dir/?api=1'
+        '&origin=${Uri.encodeComponent(startAddress)}'
+        '&destination=${Uri.encodeComponent(destinationAddress)}'
+        '&travelmode=driving');
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -1338,6 +1154,113 @@ class _OrderListViewState extends State<OrderListView> {
         const SnackBar(content: Text('Không thể mở Google Maps')),
       );
     }
+  }
+}
+
+// --- TÁI CẤU TRÚC: TÁCH ITEM RA WIDGET RIÊNG ---
+class OrderListItem extends StatelessWidget {
+  final Order order;
+  final VoidCallback onTap;
+
+  const OrderListItem({super.key, required this.order, required this.onTap});
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'processing':
+        return Colors.blue;
+      case 'taking':
+        return Colors.orange;
+      case 'delivering':
+        return Colors.deepPurple;
+      case 'received':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getStatusIcon(String? status) {
+    switch (status) {
+      case 'processing':
+        return Icons.pending_actions;
+      case 'taking':
+        return Icons.inventory_2_outlined;
+      case 'delivering':
+        return Icons.local_shipping_outlined;
+      case 'received':
+        return Icons.check_circle_outline;
+      case 'cancelled':
+        return Icons.cancel_outlined;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor:
+                _getStatusColor(order.statusCode).withOpacity(0.15),
+            child: Icon(_getStatusIcon(order.statusCode),
+                color: _getStatusColor(order.statusCode)),
+          ),
+          title: Text(order.trackingNumber ?? 'N/A',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(
+                    Icons.person_outline, "Gửi:", order.nameSender ?? ''),
+                const SizedBox(height: 4),
+                _buildInfoRow(Icons.person, "Nhận:", order.nameReceiver ?? ''),
+                const SizedBox(height: 4),
+                _buildInfoRow(
+                    Icons.calendar_month_outlined,
+                    "Ngày tạo:",
+                    order.createdAt != null
+                        ? DateFormat('dd/MM/yyyy HH:mm')
+                            .format(DateTime.parse(order.createdAt!))
+                        : 'N/A'),
+              ],
+            ),
+          ),
+          isThreeLine: true,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16.0, color: Colors.grey.shade600),
+        const SizedBox(width: 8.0),
+        Text(label,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 14)),
+        const SizedBox(width: 4.0),
+        Expanded(
+          child: Text(value,
+              style: TextStyle(
+                  color: Colors.grey.shade800,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis),
+        ),
+      ],
+    );
   }
 }
 
@@ -1350,9 +1273,12 @@ class FullScreenImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black, // Nền đen để làm nổi bật ảnh
+
       appBar: AppBar(
         backgroundColor: Colors.transparent, // Thanh app trong suốt
+
         elevation: 0, // Chưa có bóng đổ
+
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white, size: 40),
           onPressed: () {
@@ -1360,6 +1286,7 @@ class FullScreenImage extends StatelessWidget {
           },
         ),
       ),
+
       body: Center(
         child: InteractiveViewer(
           child: Image.memory(image), // Hiển thị ảnh toàn màn hình

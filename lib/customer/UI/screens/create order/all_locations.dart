@@ -16,6 +16,13 @@ class AllLocationsPage extends StatefulWidget {
 }
 
 class _AllLocationsPageState extends State<AllLocationsPage> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    context.read<GetLocationBloc>().add(GetLocations());
+    super.initState();
+  }
+
   String getLabel(String name) {
     if (name == "COMPANY") {
       return "Công ty";
@@ -40,6 +47,23 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          Tooltip(
+            message: "Thêm địa điểm mới",
+            child: IconButton(
+              icon: const Icon(Icons.add_location_alt_outlined,
+                  color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const NewLocation(location: "Thêm", isFav: true)),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       body: BlocBuilder<GetLocationBloc, OrderState>(
         builder: (context, state) {
@@ -62,8 +86,6 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
 
   Future<void> _editLocation(
       BuildContext context, Location loc, String address) async {
-    // Logic to edit the location
-    // For example:
     final result = await Navigator.push(
       context,
       MaterialPageRoute(

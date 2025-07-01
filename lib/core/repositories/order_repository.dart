@@ -15,7 +15,14 @@ class OrderRepository {
   final String baseUrl = baseUrll;
 
   Future<Map<String, dynamic>> getOrders(String token, String customerId,
-      {String status = "", int page = 1}) async {
+      {String status = "",
+      int page = 1,
+      String? phone,
+      String? name,
+      String? tracking,
+      String? startDate,
+      String? endDate
+      }) async {
     try {
       final url = Uri.parse('$baseUrl/order/search');
       final headers = {
@@ -25,23 +32,56 @@ class OrderRepository {
       final body = {
         "addition": {"sort": [], "page": page, "size": 10, "group": []},
         "criteria": [
-          {
-            "field": "statusCode",
-            "operator": (status == "CANCEL" ? "~" : "="),
-            "value": status
-          },
+          if (status != "")
+            {
+              "field": "statusCode",
+              "operator": (status == "CANCEL" ? "~" : "="),
+              "value": status,
+            },
+          if (phone != null)
+            {
+              "field": "phoneNumberReceiver",
+              "operator": "~",
+              "value": phone,
+            },
+          if (name != null)
+            {
+              "field": "nameReceiver",
+              "operator": "~",
+              "value": name,
+            },
+          if (tracking != null)
+            {
+              "field": "trackingNumber",
+              "operator": "~",
+              "value": tracking,
+            },
+          if (startDate != null && endDate != null) ...[
+            {
+              "field": "createdAt",
+              "operator": ">=",
+              "value": startDate,
+            },
+            {
+              "field": "createdAt",
+              "operator": "<=",
+              "value": endDate,
+            },
+          ],
           {"field": "customerId", "operator": "=", "value": customerId}
         ]
       };
+      // print("body" + body.toString());
       final response = await http.post(
         url,
         headers: headers,
         body: json.encode(body),
       );
 
-      print(body);
+      print(json.encode(body));
 
       final responseData = json.decode(response.body);
+      print(responseData);
       if (response.statusCode == 200) {
         return {
           "success": true,
@@ -61,7 +101,8 @@ class OrderRepository {
     }
   }
 
-  Future<Map<String, dynamic>> getOrderByTrackingNumber(String trackingNumber, String token) async {
+  Future<Map<String, dynamic>> getOrderByTrackingNumber(
+      String trackingNumber, String token) async {
     try {
       final url = Uri.parse('$baseUrl/order/search');
       final headers = {
@@ -76,7 +117,11 @@ class OrderRepository {
           {
             "addition": {"sort": [], "page": 1, "size": 5, "group": []},
             "criteria": [
-              {"field": "trackingNumber", "operator": "=", "value": trackingNumber}
+              {
+                "field": "trackingNumber",
+                "operator": "=",
+                "value": trackingNumber
+              }
             ]
           },
         ),

@@ -81,6 +81,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         SecureStorageService secureStorageService = SecureStorageService();
         await secureStorageService.saveToken(user["token"]);
         await secureStorageService.saveStaffId(user["data"].id);
+        await secureStorageService.saveCusId(user["data"].id);
         emit(Authenticated(user["data"], user["token"]));
       } else {
         emit(SentOtp(event.email, event.phone, user["message"], event.id));

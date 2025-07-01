@@ -502,9 +502,9 @@ class _CreateOrderState extends State<CreateOrder> {
     _senderPhoneController.text = user.phoneNumber ?? "";
     _pageController = PageController(initialPage: 1);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<GetLocationBloc>().add(GetLocations());
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   context.read<GetLocationBloc>().add(GetLocations());
+    // });
     _initializeData();
     _requestPhonePermission();
   }

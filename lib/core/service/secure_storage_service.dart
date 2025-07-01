@@ -16,6 +16,19 @@ class SecureStorageService {
     await _storage.delete(key: 'auth_token');
   }
 
+  Future<void> saveCusId(String id) async {
+    await _storage.write(key: 'customer_id', value: id);
+    print(await _storage.read(key: 'customer_id'));
+  }
+
+  Future<String?> getCusId() async {
+    return await _storage.read(key: 'customer_id');
+  }
+
+  Future<void> deleteCusId() async {
+    await _storage.delete(key: 'customer_id');
+  }
+
   Future<void> saveStaffId(String staffId) async {
     await _storage.write(key: 'staff_id', value: staffId);
   }

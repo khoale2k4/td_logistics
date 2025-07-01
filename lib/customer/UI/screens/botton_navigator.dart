@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:tdlogistic_v2/auth/data/models/user_model.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/contact/chats_screen.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/create%20order/create_order.dart';
-import 'package:tdlogistic_v2/customer/UI/screens/cus_info.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/customer_info/cus_info.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/history.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
-import 'package:tdlogistic_v2/customer/UI/screens/home_page.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/home/home_page.dart';
 
 class NavigatePage extends StatefulWidget {
   final User user;
@@ -32,16 +32,16 @@ class _NavigatePageState extends State<NavigatePage> {
   void initState() {
     super.initState();
     _features = [
-      HomePage(user: widget.user, toFeature: toFeature),
+      HomePage(user: widget.user, toFeature: toFeature, sendMessage: widget.sendMessage, toTab: toTab,),
       CreateOrder(user: widget.user, toHome: toHome)
     ];
     _pages = [
       Container(),
-      History(sendMessage: widget.sendMessage),
-      ChatListScreen(
-        sendMessage: widget.sendMessage,
-      ),
-      CustomerInfor(user: widget.user), // Truyền user vào CustomerInfor
+      HistoryPage(sendMessage: widget.sendMessage,onCreateOrder: onCreateOrder,),
+      // ChatListScreen(
+      //   sendMessage: widget.sendMessage,
+      // ),
+      CustomerInfor(user: widget.user, toTab: toTab, sendMessage: widget.sendMessage, onCreateOrder: onCreateOrder), 
     ];
     _currentIndex = widget.start;
   }
@@ -49,6 +49,13 @@ class _NavigatePageState extends State<NavigatePage> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  void onCreateOrder() {
+    setState(() {
+      _currentIndex = 0;
+      _currentFeature = 1;
+    });
   }
 
   // Hàm cập nhật trang khi chọn tab khác
@@ -70,6 +77,12 @@ class _NavigatePageState extends State<NavigatePage> {
     });
   }
 
+  void toTab(int tab) {
+    setState(() {
+      _currentIndex = tab;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +91,7 @@ class _NavigatePageState extends State<NavigatePage> {
         children: [
           _features[_currentFeature], // Tab Home
           _buildHistory(), // Tab History
-          _buildChatList(), // Tab Chat
+          // _buildChatList(), // Tab Chat
           _buildCustomerInfo(), // Tab Profile
         ],
       ),
@@ -95,16 +108,16 @@ class _NavigatePageState extends State<NavigatePage> {
             icon: _buildIconWithCircle(Icons.history, 1),
             label: context.tr('nav_bar.history'),
           ),
-          BottomNavigationBarItem(
-            icon: _buildIconWithCircle(Icons.messenger_outline, 2),
-            label: context.tr('nav_bar.chat'),
-          ),
+          // BottomNavigationBarItem(
+          //   icon: _buildIconWithCircle(Icons.messenger_outline, 2),
+          //   label: context.tr('nav_bar.chat'),
+          // ),
           // BottomNavigationBarItem(
           //   icon: _buildIconWithCircle(Icons.notifications_active_outlined, 2),
           //   label: 'Thông báo',
           // ),
           BottomNavigationBarItem(
-            icon: _buildIconWithCircle(Icons.person, 3),
+            icon: _buildIconWithCircle(Icons.person, 2),
             label: context.tr('nav_bar.me'),
           ),
         ],
@@ -137,7 +150,7 @@ class _NavigatePageState extends State<NavigatePage> {
 
   Widget _buildHistory() {
     return _currentIndex == 1
-        ? History(sendMessage: widget.sendMessage) // Chỉ build nếu index == 1
+        ? HistoryPage(sendMessage: widget.sendMessage, onCreateOrder: onCreateOrder,) // Chỉ build nếu index == 1
         : Container(); // Trả về Container rỗng nếu không phải tab History
   }
 
@@ -149,8 +162,8 @@ class _NavigatePageState extends State<NavigatePage> {
   }
 
   Widget _buildCustomerInfo() {
-    return _currentIndex == 3
-        ? CustomerInfor(user: widget.user) // Chỉ build nếu index == 3
+    return _currentIndex == 2
+        ? CustomerInfor(user: widget.user, toTab: toTab, sendMessage: widget.sendMessage, onCreateOrder: onCreateOrder) // Chỉ build nếu index == 3
         : Container(); // Trả về Container rỗng nếu không phải tab Profile
   }
 }

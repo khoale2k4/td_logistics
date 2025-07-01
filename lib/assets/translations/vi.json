@@ -19,16 +19,16 @@
         "receiverInfo": "Thông tin người nhận",
         "createOrder": "Tạo đơn hàng",
         "features": "Dịch vụ của chúng tôi",
-        "feature1": "Chuyển phát nhanh",
-        "feature2": "Quốc tế",
-        "feature3": "Kho bãi",
-        "feature4": "Vận tải",
-        "feature5": "Thương mại điện tử",
-        "feature6": "Hỗ trợ"
+        "feature1": "Tạo đơn",
+        "feature2": "Đơn hàng",
+        "feature3": "Nơi gửi",
+        "feature4": "Hoàn cước",
+        "feature5": "Hỗ trợ",
+        "feature6": "Tra cứu cước phí"
     },
     "nav_bar": {
         "home": "Trang chủ",
-        "history": "Lịch sử",
+        "history": "Đơn hàng",
         "chat": "Nhắn tin",
         "me": "Bạn"
     },

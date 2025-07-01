@@ -9,8 +9,12 @@ import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:tdlogistic_v2/core/models/order_model.dart';
 import 'package:tdlogistic_v2/core/repositories/order_repository.dart';
 import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/contact/chats_screen.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/create%20order/all_locations.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/create%20order/create_order.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/customer_info/info_display_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/history.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/home/fee_calculating.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/map_widget.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_bloc.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_state.dart';
@@ -19,7 +23,14 @@ import 'package:url_launcher/url_launcher.dart';
 class HomePage extends StatefulWidget {
   final User user;
   final Function(int) toFeature;
-  const HomePage({super.key, required this.user, required this.toFeature});
+  final Function(int) toTab;
+  final Function(String, String) sendMessage;
+  const HomePage(
+      {super.key,
+      required this.user,
+      required this.toFeature,
+      required this.toTab,
+      required this.sendMessage});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -40,6 +51,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final secureStorageService = SecureStorageService();
 
   double _logoHeight = 75.0;
+  double _logoOpacity = 1.0;
   bool _isSearchFocused = false;
 
   @override
@@ -94,8 +106,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   void _onScroll() {
     final double offset = _scrollController.offset;
+    const double scrollThreshold = 500.0;
+
+    final double progress = (offset / scrollThreshold).clamp(0.0, 1.0);
+
     setState(() {
-      _logoHeight = 75.0 - (offset * 0.05).clamp(0.0, 45.0);
+      _logoHeight = 75.0 * (1.0 - progress);
+      _logoOpacity = 1.0 - progress;
     });
   }
 
@@ -107,52 +124,151 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: mainColor,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            children: [
-              // Enhanced animated header
-              _buildAnimatedHeader(),
-              // Main content with fade animation
-              Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 20),
-                          _buildEnhancedSearchSection(),
-                          const SizedBox(height: 25),
-                          _buildEnhancedSenderReceiverSection(),
-                          const SizedBox(height: 25),
-                          _buildEnhancedFeaturesSection(),
-                          const SizedBox(height: 25),
-                          _buildEnhancedNewsSection(),
-                          const SizedBox(height: 20),
-                        ],
+      body: Stack(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                children: [
+                  _buildAnimatedHeader(),
+                  Expanded(
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              _buildEnhancedSearchSection(),
+                              const SizedBox(height: 25),
+                              _buildEnhancedSenderReceiverSection(),
+                              const SizedBox(height: 25),
+                              _buildEnhancedFeaturesSection(),
+                              const SizedBox(height: 25),
+                              _buildEnhancedNewsSection(),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          );
-        },
+                ],
+              );
+            },
+          ),
+          _buildFloatingActionButtons(),
+        ],
       ),
     );
   }
 
+  Widget _buildFloatingActionButtons() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10.0, right: 16.0),
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildFloatingButton(
+                icon: Icons.language,
+                onPressed: () {
+                  _showLanguageDialog(context);
+                },
+              ),
+              const SizedBox(width: 10),
+              _buildFloatingButton(
+                icon: Icons.chat_bubble_outline,
+                onPressed: () {
+                  print("Chat button pressed!");
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ChatListScreen(
+                              sendMessage: widget.sendMessage,
+                            )),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingButton(
+      {required IconData icon, required VoidCallback onPressed}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9), // Nền trắng hơi mờ
+        shape: BoxShape.circle, // Hình tròn
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: mainColor, size: 24),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(context.tr('home.changeLanguage')),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Tiếng Việt'),
+                onTap: () {
+                  context.setLocale(const Locale('vi', ''));
+                },
+                leading: Image.asset('lib/assets/feature1.png',
+                    width: 30, height: 20, fit: BoxFit.cover),
+              ),
+              ListTile(
+                title: const Text('English'),
+                onTap: () {
+                  context.setLocale(const Locale('en', ''));
+                  Navigator.pop(dialogContext);
+                },
+                leading: Image.asset('lib/assets/feature1.png',
+                    width: 30, height: 20, fit: BoxFit.cover),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAnimatedHeader() {
+    // print(180.0 - (_scrollController.hasClients ? _scrollController.offset * 0.3 : 0).clamp(0.0, 50.0));
+    // print(70.0 - (_scrollController.hasClients ? _scrollController.offset * 0.3 : 0).clamp(0.0, 50.0));
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      height: 200.0 -
-          (_scrollController.hasClients ? _scrollController.offset * 0.4 : 0)
-              .clamp(0.0, 80.0),
+      height: 180.0 -
+          (_scrollController.hasClients ? _scrollController.offset * 0.3 : 0)
+              .clamp(0.0, 180.0),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -171,10 +287,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               left: 20,
               right: 20,
               bottom: 10),
-          child: Container(
-            child: Image.asset(
-              'lib/assets/logo.png',
-              height: _logoHeight,
+          child: Opacity(
+            opacity: _logoOpacity,
+            child: Container(
+              child: Image.asset(
+                'lib/assets/logo.png',
+                height: _logoHeight,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -387,9 +507,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [secondColor, secondColor.withOpacity(0.8)],
-                      ),
+                      color: secondColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
@@ -402,16 +520,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.add_box,
-                          color: Colors.black87,
+                          color: secondColor,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           context.tr('home.createOrder'),
                           style: const TextStyle(
-                            color: Colors.black87,
+                            color: Color.fromARGB(255, 69, 125, 26),
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -462,7 +580,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.apps,
                 color: Colors.white,
                 size: 24,
@@ -514,6 +632,44 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  void toFeature(int feature) {
+    print("feature: " + feature.toString());
+    if (feature == 1) {
+      _navigateToCreateOrder();
+    } else if (feature == 2) {
+      widget.toTab(1);
+    } else if (feature == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AllLocationsPage(),
+        ),
+      );
+    } else if (feature == 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chức năng hoàn cước sắp ra mắt!')),
+      );
+    } else if (feature == 5) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => const InfoDisplayPage(
+                    title: 'Hỗ trợ khách hàng',
+                    content:
+                        'Thông tin liên hệ hỗ trợ: \n\n- Hotline: 1900 xxxx\n- Email: support@tdlogistic.vn\n- Địa chỉ: ...',
+                  )));
+    } else if (feature == 6) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const FeeCalculationPage()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chức năng này sắp ra mắt!')),
+      );
+    }
+  }
+
   Widget _buildFeatureCard(int index, String iconPath, String featureName) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -524,7 +680,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final double fontSize = screenWidth * 0.03; // ~12
 
     return GestureDetector(
-      onTap: () => widget.toFeature(index + 1),
+      onTap: () => {toFeature(index + 1)},
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200 + (index * 50)),
         decoration: BoxDecoration(
@@ -549,7 +705,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
-            onTap: () => widget.toFeature(index + 1),
+            onTap: () => toFeature(index + 1),
             child: Padding(
               padding: EdgeInsets.all(padding),
               child: Column(
