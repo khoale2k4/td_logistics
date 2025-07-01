@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+  cached_network_image: 
   google_maps_flutter: 2.1.12
   flutter_map: ^6.1.0
   latlong2: ^0.9.1

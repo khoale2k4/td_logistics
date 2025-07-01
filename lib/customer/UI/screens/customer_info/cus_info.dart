@@ -7,10 +7,14 @@ import 'package:tdlogistic_v2/auth/data/models/user_model.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 // THÊM CÁC IMPORT CẦN THIẾT CHO VIỆC ĐIỀU HƯỚNG
 import 'package:tdlogistic_v2/customer/UI/screens/create%20order/all_locations.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/customer_info/customer_support.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/customer_info/edit_profile_page.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/customer_info/giay_phep_buu_chinh.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/customer_info/info_display_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/history.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/create%20order/create_order.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/home/fee_calculating.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/home/refund_request_page.dart';
 
 class CustomerInfor extends StatefulWidget {
   final User user;
@@ -63,15 +67,27 @@ class _CustomerInforState extends State<CustomerInfor> {
         Navigator.push(context,
             MaterialPageRoute(builder: (_) => const AllLocationsPage()));
         break;
+      case 4:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const RefundRequestPage()),
+        );
+        break;
       case 5:
         Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const InfoDisplayPage(
-                            title: 'Hỗ trợ khách hàng',
-                            content:
-                                'Thông tin liên hệ hỗ trợ: \n\n- Hotline: 1900 xxxx\n- Email: support@tdlogistic.vn\n- Địa chỉ: ...',
-                          )));
+            context,
+            MaterialPageRoute(
+                builder: (_) => const InfoDisplayPage(
+                      title: 'Hỗ trợ khách hàng',
+                      content:
+                          'Thông tin liên hệ hỗ trợ: \n\n- Hotline: 1900 xxxx\n- Email: support@tdlogistic.vn\n- Địa chỉ: ...',
+                    )));
+        break;
+      case 6:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const FeeCalculationPage()),
+        );
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -294,51 +310,39 @@ class _CustomerInforState extends State<CustomerInfor> {
       ),
       child: Column(
         children: [
+          // --- MỤC 1: Điều khoản & Giấy tờ ---
+          // Sẽ điều hướng đến trang menu chứa tất cả tài liệu
           _buildInfoTile(
             icon: Icons.description_outlined,
             title: 'Điều khoản & Giấy tờ',
             onTap: () {
+              // <-- THAY ĐỔI Ở ĐÂY
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const InfoDisplayPage(
-                            title: 'Điều khoản & Giấy tờ',
-                            content:
-                                'Nội dung chi tiết về điều khoản và các giấy tờ liên quan sẽ được hiển thị ở đây...',
-                          )));
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const TermsAndDocumentsPage()),
+              );
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
-          _buildInfoTile(
-            icon: Icons.gavel_outlined,
-            title: 'Quy định & Chính sách',
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const InfoDisplayPage(
-                            title: 'Quy định & Chính sách',
-                            content:
-                                'Nội dung chi tiết về các quy định và chính sách của công ty sẽ được hiển thị ở đây...',
-                          )));
-            },
-          ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
+
+          // --- MỤC 2: Hỗ trợ khách hàng ---
+          // Sẽ điều hướng đến trang hỗ trợ mới, tương tác hơn
           _buildInfoTile(
             icon: Icons.support_agent_outlined,
             title: 'Hỗ trợ khách hàng',
             onTap: () {
+              // <-- THAY ĐỔI Ở ĐÂY
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const InfoDisplayPage(
-                            title: 'Hỗ trợ khách hàng',
-                            content:
-                                'Thông tin liên hệ hỗ trợ: \n\n- Hotline: 1900 xxxx\n- Email: support@tdlogistic.vn\n- Địa chỉ: ...',
-                          )));
+                context,
+                MaterialPageRoute(builder: (_) => const CustomerSupportPage()),
+              );
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
+
+          // --- MỤC 3: Thay đổi ngôn ngữ ---
+          // Giữ nguyên logic cũ vì nó đã hoạt động tốt
           _buildInfoTile(
             icon: Icons.language_outlined,
             title: 'Thay đổi ngôn ngữ',

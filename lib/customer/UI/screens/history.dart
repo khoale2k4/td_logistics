@@ -102,7 +102,6 @@ class _HistoryPageState extends State<HistoryPage> {
               ? "CANCEL"
               : _selectedStatus?.toUpperCase());
 
-      // API của bạn cần được cập nhật để nhận startDate và endDate
       final response = await orderRepository.getOrders(
         token!,
         customerId!,

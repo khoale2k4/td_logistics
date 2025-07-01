@@ -21,7 +21,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
   final _destinationController = TextEditingController();
   final _weightController = TextEditingController();
   final _lengthController = TextEditingController();
-  final _widthController = TextEditingController();
+  // final _widthController = TextEditingController();
   final _heightController = TextEditingController();
   final OrderRepository orderRepository = OrderRepository();
   final SecureStorageService secureStorageService = SecureStorageService();
@@ -85,7 +85,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
     _destinationController.dispose();
     _weightController.dispose();
     _lengthController.dispose();
-    _widthController.dispose();
+    // _widthController.dispose();
     _heightController.dispose();
     super.dispose();
   }
@@ -133,19 +133,19 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
               const SizedBox(height: 24),
 
               // --- VÙNG NHẬP LIỆU THÔNG TIN GÓI HÀNG ---
-              const Text("Thông tin gói hàng",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _weightController,
-                decoration: const InputDecoration(
-                    labelText: 'Khối lượng (kg)', border: OutlineInputBorder()),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Vui lòng nhập khối lượng'
-                    : null,
-              ),
+              // const Text("Thông tin gói hàng",
+              //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              // const SizedBox(height: 16),
+              // TextFormField(
+              //   controller: _weightController,
+              //   decoration: const InputDecoration(
+              //       labelText: 'Khối lượng (kg)', border: OutlineInputBorder()),
+              //   keyboardType:
+              //       const TextInputType.numberWithOptions(decimal: true),
+              //   validator: (value) => (value == null || value.isEmpty)
+              //       ? 'Vui lòng nhập khối lượng'
+              //       : null,
+              // ),
               // Bạn có thể thêm các ô cho kích thước ở đây
               const SizedBox(height: 24),
 

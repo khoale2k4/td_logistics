@@ -30,7 +30,7 @@ class OrderRepository {
         "authorization": "Bearer $token"
       };
       final body = {
-        "addition": {"sort": [], "page": page, "size": 10, "group": []},
+        "addition": {"sort": [], "page": page, "size": 100, "group": []},
         "criteria": [
           if (status != "")
             {

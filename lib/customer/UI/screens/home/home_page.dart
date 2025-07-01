@@ -15,6 +15,7 @@ import 'package:tdlogistic_v2/customer/UI/screens/create%20order/create_order.da
 import 'package:tdlogistic_v2/customer/UI/screens/customer_info/info_display_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/history.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/home/fee_calculating.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/home/refund_request_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/map_widget.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_bloc.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_state.dart';
@@ -646,8 +647,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       );
     } else if (feature == 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chức năng hoàn cước sắp ra mắt!')),
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RefundRequestPage()),
       );
     } else if (feature == 5) {
       Navigator.push(

@@ -431,7 +431,8 @@ class _CreateOrderState extends State<CreateOrder> {
   bool _validateNumberInputs() {
     setState(() {
       _isReceiverNameValid = _receiverNameController.text != "";
-      _isReceiverPhoneValid = validateInternationalPhone(_receiverPhoneController.text);
+      _isReceiverPhoneValid =
+          validateInternationalPhone(_receiverPhoneController.text);
       _isWeightValid = (_selectedWeightRange != -1 || _isBulky);
       _goodTypeValid = (_selectedGoodsType != null);
     });
@@ -505,6 +506,7 @@ class _CreateOrderState extends State<CreateOrder> {
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   context.read<GetLocationBloc>().add(GetLocations());
     // });
+    context.read<GetLocationBloc>().add(GetLocations());
     _initializeData();
     _requestPhonePermission();
   }
