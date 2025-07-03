@@ -63,17 +63,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
             );
           }
-          return const Center(child: Text('Đang tải...'));
+          return Center(child: Text(context.tr('chat.loading')));
         },
       ),
     );
   }
 
   Widget _buildEmptyChatList() {
-    return const Center(
+    return Center(
       child: Text(
-        'Không có cuộc trò chuyện nào',
-        style: TextStyle(fontSize: 16, color: Colors.grey),
+        context.tr('chat.noChat'),
+        style: const TextStyle(fontSize: 16, color: Colors.grey),
       ),
     );
   }

@@ -24,7 +24,22 @@
         "feature3": "Nơi gửi",
         "feature4": "Hoàn cước",
         "feature5": "Hỗ trợ",
-        "feature6": "Tra cứu cước phí"
+        "feature6": "Tra cứu cước phí",
+        "enterOrderCodeWarning": "Vui lòng nhập mã đơn hàng",
+        "orderNotFound": "Không tìm thấy đơn hàng",
+        "searchError": "Lỗi tìm kiếm đơn hàng",
+        "promotions": "Khuyến mãi đặc biệt",
+        "viewAll": "Xem tất cả",
+        "latestNews": "Tin tức mới nhất",
+        "seeMore": "Xem thêm",
+        "deliveryOptions": "Tùy chọn giao hàng",
+        "pickupOptions": "Tùy chọn nhận hàng",
+        "trackingHistory": "Lịch sử theo dõi",
+        "customerSupport": "Hỗ trợ khách hàng",
+        "changeLanguage": "Đổi ngôn ngữ",
+        "comingSoon": "Tính năng này sắp ra mắt!",
+        "vietnamese": "Tiếng Việt",
+        "english": "English"
     },
     "nav_bar": {
         "home": "Trang chủ",
@@ -33,6 +48,7 @@
         "me": "Bạn"
     },
     "history": {
+        "title": "Lịch sử đơn hàng",
         "processing": "Đang xử lý",
         "taking": "Đang lấy hàng",
         "delivering": "Đang giao hàng",
@@ -52,7 +68,7 @@
         "recevier": "Người nhận",
         "receiverPhone": "SĐT Người nhận",
         "receiverAddress": "Địa chỉ người nhận",
-        "clickMe": "Nhấn để xem",
+        "clickMe": "Bấm để xem trên bản đồ",
         "weight": "Khối lượng",
         "fee": "Phí",
         "paymentStatus": "Trạng thái thanh toán",
@@ -62,13 +78,56 @@
         "images&signature": "Hình ảnh và chữ ký",
         "sendImage": "Hình ảnh gửi",
         "receiveImage": "Hình ảnh nhận",
-        "noImages": "Chưa có hình ảnh",
+        "noImages": "Không tìm thấy ảnh.",
         "sendSignature": "Chữ ký người gửi",
         "receiveSignature": "Chứ ký người nhận",
-        "noSignature": "Chưa có chữ ký",
+        "noSignature": "Không tìm thấy chữ ký.",
         "cancel": "Từ chối",
         "received": "Đã nhận",
-        "rate": "Đánh giá"
+        "rate": "Đánh giá",
+        "all": "Tất cả",
+        "createOrder": "Tạo đơn hàng",
+        "searchOrders": "Tìm kiếm đơn hàng...",
+        "locationPermissionRequired": "Cần cấp quyền vị trí để sử dụng tính năng này",
+        "selectTimeRange": "Chọn khoảng thời gian...",
+        "noImagesOrSignature": "Không tìm thấy ảnh hoặc chữ ký.",
+        "noJourney": "Chưa có hành trình nào.",
+        "noNeed": "Không còn nhu cầu",
+        "wrongProduct": "Sản phẩm không đúng mô tả",
+        "other": "Khác",
+        "rateOrder": "Đánh Giá Đơn Hàng",
+        "enterOtherReason": "Nhập lý do khác",
+        "enterComment": "Nhập bình luận của bạn",
+        "cannotOpenMaps": "Không thể mở Google Maps",
+        "send": "Gửi",
+        "noJourneys": "Chưa có hành trình nào.",
+        "noInfo": "Chưa có thông tin",
+        "cancelReason": {
+            "title": "Lý Do Hủy Đơn Hàng",
+            "noNeed": "Không còn nhu cầu",
+            "wrongDescription": "Sản phẩm không đúng mô tả",
+            "other": "Khác",
+            "otherHint": "Nhập lý do khác",
+            "cancel": "Hủy",
+            "send": "Gửi"
+        },
+        "rating": {
+            "title": "Đánh Giá Đơn Hàng",
+            "commentHint": "Nhập bình luận của bạn",
+            "cancel": "Hủy",
+            "send": "Gửi"
+        },
+        "googleMapsError": "Không thể mở Google Maps",
+        "filter": {
+            "all": "Tất cả thời gian",
+            "today": "Hôm nay",
+            "yesterday": "Hôm qua",
+            "3days": "3 ngày qua",
+            "7days": "7 ngày qua",
+            "1month": "1 tháng qua",
+            "1year": "1 năm qua",
+            "3years": "3 năm qua"
+        }
     },
     "chat": {
         "chatList": "Danh sách trò chuyện",
@@ -77,7 +136,8 @@
         "hourBefore": "giờ trước",
         "now": "Vừa xong",
         "typeSomething": "Nhập tin nhắn",
-        "noChat": "Chưa có tin nhắn"
+        "noChat": "Chưa có tin nhắn",
+        "loading": "Đang tải..."
     },
     "user_info": {
         "greeting": "Xin chào!",
@@ -91,7 +151,10 @@
         "logout": "Đăng xuất",
         "confirmLogout": "Bạn muốn đăng xuất?",
         "deny": "Huỷ",
-        "confirm": "Xác nhận"
+        "confirm": "Xác nhận",
+        "edit_title": "Chỉnh sửa thông tin",
+        "terms_and_documents": "Điều khoản & Giấy tờ",
+        "email": "Email"
     },
     "order_pages": {
         "continue": "Tiếp tục",
@@ -103,7 +166,7 @@
             "sender_location": "Nơi gửi",
             "receiver_location": "Nơi nhận",
             "please_enter_address": "Vui lòng nhập địa chỉ",
-            "fetching_locations": "Đang lấy các địa điểm",
+            "fetching_locations": "Đang tải danh sách địa điểm...",
             "favorite_pickup_location": "Địa điểm nhận yêu thích",
             "pick_a_location": "Chọn địa điểm",
             "search_address": "Tìm kiếm địa điểm",
@@ -116,16 +179,21 @@
             "phone": "SĐT người nhận",
             "correct_phone": "Vui lòng nhập đúng SĐT!",
             "save": "Lưu",
-            "saved_locations": "Các địa điểm đã lưu",
+            "saved_locations": "Địa điểm đã lưu",
             "button_label": "Nút",
-            "myHome": "Nhà",
-            "myCompany": "Công ty",
+            "myHome": "Nhà của tôi",
+            "myCompany": "Công ty của tôi",
             "more": "Thêm",
             "see_all": "Xem tất cả",
             "confirm_delete": "Xác nhận xóa",
             "delete_alert": "Bạn có chắc chắn muốn xóa địa điểm này không?",
             "delete": "Xoá",
-            "cancel": "Huỷ"
+            "cancel": "Huỷ",
+            "loading": "Đang tải",
+            "error": "Lỗi",
+            "noAddressFound": "Không tìm thấy địa chỉ",
+            "add_new_location": "Thêm địa điểm mới",
+            "no_saved_locations": "Chưa có địa điểm nào được lưu"
         },
         "order_detail_page": {
             "i_am_receiver": "Tôi là người nhận",
@@ -222,13 +290,139 @@
             "creating_order": "Đang tạo đơn hàng...",
             "confirmation": "Bạn có chắc chắn muốn tạo đơn hàng không?",
             "confirm": "Xác nhận",
-            "cancel": "Huỷ"
+            "cancel": "Huỷ",
+            "agree": "Đồng ý"
+        },
+        "create_order": {
+            "searchContacts": "Tìm kiếm liên hệ...",
+            "noContactsFound": "Không tìm thấy liên hệ phù hợp",
+            "contactAccessError": "Đã xảy ra lỗi khi truy cập danh bạ",
+            "locationPermissionRequired": "Cần cấp quyền vị trí để sử dụng tính năng này",
+            "contactPermissionRequired": "Bạn cần cấp quyền để truy cập danh bạ"
+        },
+        "insurance": {
+            "maxImages": "Chỉ được chọn tối đa 2 ảnh",
+            "confirmDelete": "Xác nhận xóa",
+            "deleteInsurance": "Bạn có chắc chắn muốn xóa bảo hiểm này?",
+            "chooseImageSource": "Chọn nguồn ảnh",
+            "takePhoto": "Chụp ảnh",
+            "chooseFromGallery": "Chọn từ máy",
+            "selectImage": "Chọn ảnh",
+            "imagesSelected": "ảnh đã chọn",
+            "invoice": "Hoá đơn",
+            "invoiceDescription": "Bật để điền thông tin hoá đơn",
+            "cannotCreateInvoice": "Không thể tạo hóa đơn.",
+            "cannotGetInvoiceInfo": "Không thể lấy thông tin hóa đơn.",
+            "enterNote": "Nhập ghi chú",
+            "title": "Chi tiết bảo hiểm",
+            "companyName": "Tên công ty",
+            "taxCode": "Mã số thuế",
+            "companyEmail": "Email công ty",
+            "noInvoiceRequired": "Không yêu cầu hóa đơn"
+        },
+        "voucher": {
+            "title": "Phiếu giảm giá",
+            "error": "Lỗi",
+            "noData": "Không có dữ liệu"
+        },
+        "fee_calculating": {
+            "title": "Tính phí vận chuyển",
+            "transportInfo": "Thông tin vận chuyển",
+            "origin": "Điểm đi",
+            "destination": "Điểm đến",
+            "service": "Dịch vụ",
+            "standard": "Siêu rẻ",
+            "express": "Siêu nhanh",
+            "calculate": "Tính cước",
+            "estimatedFee": "Cước phí dự kiến"
+        },
+        "refund": {
+            "title": "Yêu cầu hoàn phí",
+            "inputTitle": "Tiêu đề",
+            "inputTitleHint": "Ví dụ: Yêu cầu hoàn cước đơn hàng hỏng",
+            "inputTitleError": "Vui lòng nhập tiêu đề",
+            "inputTracking": "Mã vận đơn",
+            "inputTrackingHint": "Nhập mã vận đơn",
+            "inputTrackingError": "Vui lòng nhập mã vận đơn",
+            "inputContent": "Nội dung chi tiết",
+            "inputContentHint": "Vui lòng mô tả rõ vấn đề bạn gặp phải...",
+            "inputContentError": "Vui lòng mô tả chi tiết vấn đề",
+            "inputContentShort": "Nội dung cần chi tiết hơn (ít nhất 20 ký tự)",
+            "sending": "Đang gửi...",
+            "sendRequest": "Gửi Yêu Cầu",
+            "success": "Gửi yêu cầu hoàn phí thành công!"
+        },
+        "voice_chat": {
+            "title": "P2P Voice Chat"
+        },
+        "documents": {
+            "title": "Điều khoản & Giấy tờ",
+            "private": "Chính sách bảo mật",
+            "business_license": "Giấy phép kinh doanh",
+            "about": "Giới thiệu dịch vụ",
+            "services": "Giới thiệu dịch vụ TDLogistics",
+            "buu_chinh": "Giấy phép bưu chính",
+            "policy": "Điều khoản dịch vụ",
+            "businessLicenseTitle": "GIẤY CHỨNG NHẬN ĐĂNG KÝ DOANH NGHIỆP",
+            "companyType": "CÔNG TY CỔ PHẦN",
+            "businessLicenseNumber": "Số GPKD:",
+            "issuedBy": "Nơi cấp:",
+            "issuedDate": "Ngày cấp:",
+            "close": "Đóng",
+            "contentUpdating": "Nội dung đang được cập nhật."
+        },
+        "map": {
+            "title": "Chi tiết lộ trình"
+        },
+        "services": {
+            "title": "Giới thiệu dịch vụ",
+            "express": {
+                "title": "Chuyển phát nhanh (Express)",
+                "description": "Dịch vụ giao hàng tốc độ cao, đảm bảo bưu kiện của bạn đến tay người nhận trong thời gian ngắn nhất. Phù hợp cho các tài liệu quan trọng và hàng hóa cần gấp."
+            },
+            "economy": {
+                "title": "Giao hàng Tiết kiệm (Economy)",
+                "description": "Giải pháp vận chuyển tối ưu chi phí cho các doanh nghiệp và cá nhân không có yêu cầu quá cao về thời gian. Cước phí hợp lý, mạng lưới phủ sóng toàn quốc."
+            },
+            "cod": {
+                "title": "Thu hộ COD (Cash on Delivery)",
+                "description": "Giao hàng và thu tiền hộ một cách an toàn, tiện lợi. Dòng tiền được đối soát minh bạch, nhanh chóng và chính xác, giúp bạn yên tâm kinh doanh online."
+            },
+            "heavy": {
+                "title": "Vận chuyển hàng nặng",
+                "description": "Cung cấp giải pháp chuyên biệt cho các lô hàng có khối lượng và kích thước lớn, hàng hóa cồng kềnh. Đảm bảo an toàn và giao nhận đúng hẹn."
+            }
         }
     },
     "common": {
         "close": "Đóng",
         "retry": "Thử lại",
         "save": "Lưu",
-        "error": "Lỗi: "
+        "error": "Lỗi: ",
+        "loading": "Đang tải",
+        "noData": "Không có dữ liệu",
+        "cancel": "Huỷ",
+        "confirm": "Xác nhận",
+        "delete": "Xóa",
+        "update": "Cập nhật"
+    },
+    "help_center": {
+        "title": "Trung tâm Trợ giúp",
+        "faq": "Câu hỏi thường gặp",
+        "contact": "Liên hệ với chúng tôi",
+        "facebook": "Facebook",
+        "zalo": "Zalo",
+        "hotline": "Hotline",
+        "email": "Email",
+        "faq1_q": "Làm thế nào để tạo một đơn hàng mới?",
+        "faq1_a": "Để tạo đơn hàng, bạn vào màn hình chính, nhấn vào nút 'Tạo đơn hàng' hoặc chọn mục 'Tạo đơn' trong phần tính năng. Sau đó, bạn điền đầy đủ thông tin người gửi, người nhận, và thông tin gói hàng rồi xác nhận.",
+        "faq2_q": "Làm sao để theo dõi hành trình đơn hàng?",
+        "faq2_a": "Bạn có thể nhập mã vận đơn vào ô 'Theo dõi đơn hàng' ở màn hình chính, hoặc vào mục 'Lịch sử đơn hàng' và chọn đơn hàng bạn muốn xem chi tiết hành trình.",
+        "faq3_q": "TDLogistics có nhận vận chuyển những mặt hàng nào?",
+        "faq3_a": "Chúng tôi nhận vận chuyển hầu hết các loại hàng hóa hợp pháp. Tuy nhiên, có một số mặt hàng bị cấm hoặc hạn chế như: chất cấm, vũ khí, động vật sống, hàng hóa dễ cháy nổ... Vui lòng tham khảo chi tiết trong mục 'Điều khoản & Giấy tờ'.",
+        "faq4_q": "Chính sách bồi thường thiệt hại như thế nào?",
+        "faq4_a": "TDLogistics có chính sách bồi thường rõ ràng cho các trường hợp mất mát hoặc hư hỏng hàng hóa do lỗi của chúng tôi. Mức bồi thường tùy thuộc vào giá trị hàng hóa và dịch vụ bạn sử dụng. Chi tiết được quy định trong 'Điều khoản dịch vụ'.",
+        "faq5_q": "Cước phí vận chuyển được tính như thế nào?",
+        "faq5_a": "Cước phí được tính dựa trên khối lượng thực tế hoặc khối lượng quy đổi từ kích thước (dài x rộng x cao), tùy thuộc vào giá trị nào lớn hơn. Ngoài ra, cước phí còn phụ thuộc vào khoảng cách vận chuyển và loại dịch vụ bạn chọn (nhanh, tiêu chuẩn...)."
     }
 }

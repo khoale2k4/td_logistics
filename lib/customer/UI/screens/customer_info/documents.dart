@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/customer_info/info_display_page.dart';
@@ -309,8 +310,8 @@ Gửi yêu cầu xóa tài khoản qua email
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Điều khoản & Giấy tờ",
-            style: TextStyle(color: Colors.white)),
+        title: Text(context.tr('order_pages.documents.title'),
+            style: const TextStyle(color: Colors.white)),
         backgroundColor: mainColor,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -323,7 +324,7 @@ Gửi yêu cầu xóa tài khoản qua email
           final doc = documents[index];
           return ListTile(
             leading: Icon(doc['icon'] as IconData, color: Colors.grey.shade700),
-            title: Text(doc['title'] as String,
+            title: Text(context.tr('order_pages.documents.' + (doc['id'] ?? 'unknown')),
                 style: const TextStyle(fontSize: 16)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
@@ -341,7 +342,14 @@ Gửi yêu cầu xóa tài khoản qua email
                               title: title, imageUrls: imageUrls)));
                   break;
                 case DocumentType.text:
-                  if (id == 'private') {
+                  if (id == 'policy') {
+                    final content = doc['data'] as String;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => InfoDisplayPage(
+                                title: title, content: content)));
+                  } else if (id == 'private') {
                     final content = doc['data'] as String;
                     Navigator.push(
                         context,
@@ -359,10 +367,10 @@ Gửi yêu cầu xóa tài khoản qua email
                   }
                   break;
                 case DocumentType.placeholder:
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Nội dung đang được cập nhật.')),
-                  );
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(context.tr('order_pages.documents.contentUpdating'))),
+                    );
                   break;
               }
             },
@@ -397,10 +405,10 @@ Gửi yêu cầu xóa tài khoản qua email
                 const SizedBox(height: 16),
 
                 // 2. Tên giấy phép
-                const Text(
-                  'GIẤY CHỨNG NHẬN ĐĂNG KÝ DOANH NGHIỆP',
+                Text(
+                  context.tr('order_pages.documents.businessLicenseTitle'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: mainColor,
@@ -408,7 +416,7 @@ Gửi yêu cầu xóa tài khoản qua email
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'CÔNG TY CỔ PHẦN', // Loại hình công ty
+                  context.tr('order_pages.documents.companyType'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -420,13 +428,13 @@ Gửi yêu cầu xóa tài khoản qua email
 
                 // 3. Các thông tin chi tiết
                 _buildInfoRow(
-                    'Số GPKD:', '0123456789'), // <-- THAY THÔNG TIN CỦA BẠN
+                    context.tr('order_pages.documents.businessLicenseNumber'), '0123456789'),
                 const SizedBox(height: 12),
-                _buildInfoRow('Nơi cấp:',
-                    'Sở Kế hoạch và Đầu tư TP. Hồ Chí Minh'), // <-- THAY THÔNG TIN CỦA BẠN
+                _buildInfoRow(context.tr('order_pages.documents.issuedBy'),
+                    'Sở Kế hoạch và Đầu tư TP. Hồ Chí Minh'),
                 const SizedBox(height: 12),
                 _buildInfoRow(
-                    'Ngày cấp:', '01/01/2020'), // <-- THAY THÔNG TIN CỦA BẠN
+                    context.tr('order_pages.documents.issuedDate'), '01/01/2020'),
                 const SizedBox(height: 32),
 
                 // Nút đóng
@@ -437,7 +445,7 @@ Gửi yêu cầu xóa tài khoản qua email
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.grey.shade200,
                     ),
-                    child: const Text('Đóng'),
+                    child: Text(context.tr('order_pages.documents.close')),
                   ),
                 ),
               ],

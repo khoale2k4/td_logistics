@@ -201,10 +201,10 @@ class _CreateOrderState extends State<CreateOrder> {
       final permissionGranted = await FlutterContacts.requestPermission();
       if (!permissionGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Bạn cần cấp quyền để truy cập danh bạ'),
-            behavior: SnackBarBehavior.floating,
-          ),
+                  SnackBar(
+          content: Text(context.tr('order_pages.create_order.contactPermissionRequired')),
+          behavior: SnackBarBehavior.floating,
+        ),
         );
         return {};
       }

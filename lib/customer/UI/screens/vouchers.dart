@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class Voucher {
   final String title;
@@ -37,7 +38,7 @@ class VoucherPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Phiếu giảm giá'),
+        title: Text(context.tr('order_pages.voucher.title')),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

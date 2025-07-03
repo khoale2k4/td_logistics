@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class FaqItem {
   final String question;
@@ -12,34 +13,6 @@ class FaqItem {
 class HelpCenterPage extends StatelessWidget {
   HelpCenterPage({super.key});
 
-  final List<FaqItem> faqItems = [
-    FaqItem(
-      question: 'Làm thế nào để tạo một đơn hàng mới?',
-      answer:
-          'Để tạo đơn hàng, bạn vào màn hình chính, nhấn vào nút "Tạo đơn hàng" hoặc chọn mục "Tạo đơn" trong phần tính năng. Sau đó, bạn điền đầy đủ thông tin người gửi, người nhận, và thông tin gói hàng rồi xác nhận.',
-    ),
-    FaqItem(
-      question: 'Làm sao để theo dõi hành trình đơn hàng?',
-      answer:
-          'Bạn có thể nhập mã vận đơn vào ô "Theo dõi đơn hàng" ở màn hình chính, hoặc vào mục "Lịch sử đơn hàng" và chọn đơn hàng bạn muốn xem chi tiết hành trình.',
-    ),
-    FaqItem(
-      question: 'TDLogistics có nhận vận chuyển những mặt hàng nào?',
-      answer:
-          'Chúng tôi nhận vận chuyển hầu hết các loại hàng hóa hợp pháp. Tuy nhiên, có một số mặt hàng bị cấm hoặc hạn chế như: chất cấm, vũ khí, động vật sống, hàng hóa dễ cháy nổ... Vui lòng tham khảo chi tiết trong mục "Điều khoản & Giấy tờ".',
-    ),
-    FaqItem(
-      question: 'Chính sách bồi thường thiệt hại như thế nào?',
-      answer:
-          'TDLogistics có chính sách bồi thường rõ ràng cho các trường hợp mất mát hoặc hư hỏng hàng hóa do lỗi của chúng tôi. Mức bồi thường tùy thuộc vào giá trị hàng hóa và dịch vụ bạn sử dụng. Chi tiết được quy định trong "Điều khoản dịch vụ".',
-    ),
-    FaqItem(
-      question: 'Cước phí vận chuyển được tính như thế nào?',
-      answer:
-          'Cước phí được tính dựa trên khối lượng thực tế hoặc khối lượng quy đổi từ kích thước (dài x rộng x cao), tùy thuộc vào giá trị nào lớn hơn. Ngoài ra, cước phí còn phụ thuộc vào khoảng cách vận chuyển và loại dịch vụ bạn chọn (nhanh, tiêu chuẩn...).',
-    ),
-  ];
-
   Future<void> _launchURL(String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -49,10 +22,32 @@ class HelpCenterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<FaqItem> faqItems = [
+      FaqItem(
+        question: context.tr('help_center.faq1_q'),
+        answer: context.tr('help_center.faq1_a'),
+      ),
+      FaqItem(
+        question: context.tr('help_center.faq2_q'),
+        answer: context.tr('help_center.faq2_a'),
+      ),
+      FaqItem(
+        question: context.tr('help_center.faq3_q'),
+        answer: context.tr('help_center.faq3_a'),
+      ),
+      FaqItem(
+        question: context.tr('help_center.faq4_q'),
+        answer: context.tr('help_center.faq4_a'),
+      ),
+      FaqItem(
+        question: context.tr('help_center.faq5_q'),
+        answer: context.tr('help_center.faq5_a'),
+      ),
+    ];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trung tâm Trợ giúp',
-            style: TextStyle(color: Colors.white)),
+        title: Text(context.tr('help_center.title'),
+            style: const TextStyle(color: Colors.white)),
         backgroundColor: mainColor,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -60,9 +55,9 @@ class HelpCenterPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const Text(
-            'Câu hỏi thường gặp',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          Text(
+            context.tr('help_center.faq'),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           ...faqItems.map((item) => _buildFaqTile(item)).toList(),
@@ -71,13 +66,13 @@ class HelpCenterPage extends StatelessWidget {
           const Divider(thickness: 1),
           const SizedBox(height: 24),
 
-          const Text(
-            'Liên hệ với chúng tôi',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          Text(
+            context.tr('help_center.contact'),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          _buildContactMethodsGrid(),
+          _buildContactMethodsGrid(context),
         ],
       ),
     );
@@ -103,7 +98,7 @@ class HelpCenterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildContactMethodsGrid() {
+  Widget _buildContactMethodsGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -113,39 +108,41 @@ class HelpCenterPage extends StatelessWidget {
       childAspectRatio: 1.2,
       children: [
         _buildContactCard(
+          context: context,
           icon: Icons.facebook,
-          title: 'Facebook',
+          titleKey: 'facebook',
           color: Colors.blue.shade800,
-          onTap: () => _launchURL(
-              'https://m.me/your_facebook_page_username'), // <-- THAY LINK FACEBOOK CỦA BẠN
+          onTap: () => _launchURL('https://m.me/your_facebook_page_username'),
         ),
         _buildContactCard(
+          context: context,
           icon: Icons.message,
-          title: 'Zalo',
+          titleKey: 'zalo',
           color: Colors.blue.shade600,
-          onTap: () => _launchURL(
-              'https://zalo.me/your_zalo_phone_number'), // <-- THAY SĐT HOẶC ZALO ID CỦA BẠN
+          onTap: () => _launchURL('https://zalo.me/your_zalo_phone_number'),
         ),
         _buildContactCard(
+          context: context,
           icon: Icons.phone_in_talk_outlined,
-          title: 'Hotline',
+          titleKey: 'hotline',
           color: Colors.green,
           onTap: () => _launchURL('tel:19001234'),
         ),
         _buildContactCard(
+          context: context,
           icon: Icons.email_outlined,
-          title: 'Email',
+          titleKey: 'email',
           color: Colors.red.shade700,
-          onTap: () => _launchURL(
-              'mailto:support@tdlogistics.vn?subject=Hỗ trợ khách hàng'),
+          onTap: () => _launchURL('mailto:support@tdlogistics.vn?subject=Hỗ trợ khách hàng'),
         ),
       ],
     );
   }
 
   Widget _buildContactCard({
+    required BuildContext context,
     required IconData icon,
-    required String title,
+    required String titleKey,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -166,7 +163,7 @@ class HelpCenterPage extends StatelessWidget {
               Icon(icon, size: 40, color: color),
               const SizedBox(height: 12),
               Text(
-                title,
+                context.tr('help_center.' + titleKey),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

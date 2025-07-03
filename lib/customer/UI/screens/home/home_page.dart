@@ -17,6 +17,7 @@ import 'package:tdlogistic_v2/customer/UI/screens/home/help_center_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/home/refund_request_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/map_widget.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_bloc.dart';
+import 'package:tdlogistic_v2/customer/bloc/order_event.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -226,35 +227,83 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _showLanguageDialog(BuildContext context) {
+    final languages = [
+      {'code': 'vi', 'label': 'Tiếng Việt', 'flag': '🇻🇳'},
+      {'code': 'en', 'label': 'English', 'flag': '🇺🇸'},
+      {'code': 'th', 'label': 'ภาษาไทย', 'flag': '🇹🇭'},
+      {'code': 'zh', 'label': '中文', 'flag': '🇨🇳'},
+      {'code': 'ko', 'label': '한국어', 'flag': '🇰🇷'},
+      {'code': 'ja', 'label': '日本語', 'flag': '🇯🇵'},
+    ];
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(context.tr('home.changeLanguage')),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: Text(
+            context.tr('home.changeLanguage'),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: mainColor,
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                title: const Text('Tiếng Việt'),
-                onTap: () {
-                  context.setLocale(const Locale('vi', ''));
-                },
-                leading: Image.asset('lib/assets/feature1.png',
-                    width: 30, height: 20, fit: BoxFit.cover),
-              ),
-              ListTile(
-                title: const Text('English'),
-                onTap: () {
-                  context.setLocale(const Locale('en', ''));
-                  Navigator.pop(dialogContext);
-                },
-                leading: Image.asset('lib/assets/feature1.png',
-                    width: 30, height: 20, fit: BoxFit.cover),
-              ),
+              for (final lang in languages)
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: context.locale.languageCode == lang['code']
+                          ? mainColor
+                          : Colors.grey.shade300,
+                      width: context.locale.languageCode == lang['code'] ? 2 : 1,
+                    ),
+                    color: context.locale.languageCode == lang['code']
+                        ? mainColor.withOpacity(0.1)
+                        : Colors.transparent,
+                  ),
+                  child: ListTile(
+                    leading: Text(
+                      lang['flag']!,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    title: Text(
+                      lang['label']!,
+                      style: TextStyle(
+                        fontWeight: context.locale.languageCode == lang['code']
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: context.locale.languageCode == lang['code']
+                            ? mainColor
+                            : Colors.black87,
+                      ),
+                    ),
+                    trailing: context.locale.languageCode == lang['code']
+                        ? Icon(Icons.check_circle, color: mainColor)
+                        : null,
+                    onTap: () {
+                      context.setLocale(Locale(lang['code']!, ''));
+                      Navigator.pop(dialogContext);
+                    },
+                  ),
+                ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                context.tr('common.cancel'),
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -401,7 +450,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       if (!mounted) return;
       print(order["data"][0]);
 
-      _showOrderDetailsBottomSheet(context, Order.fromJson(order["data"][0]));
+
+      final orderData = Order.fromJson(order["data"][0]);
+      _showOrderDetailsBottomSheet(context, orderData);
+      context.read<GetImagesBloc>().add(GetOrderImages(orderData.id!));
 
       // Navigator.push(
       //   context,
@@ -662,7 +714,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chức năng này sắp ra mắt!')),
+        SnackBar(content: Text(context.tr('home.comingSoon'))),
       );
     }
   }
@@ -1136,7 +1188,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                 );
               }
-              return const Text('Không tìm thấy ảnh hoặc chữ ký.');
+              return Text(context.tr('history.noImagesOrSignature'));
             },
           ),
         ],
@@ -1146,7 +1198,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildImageGrid(String title, List<Uint8List> images) {
     if (images.isEmpty) {
-      return Text('$title: ${context.tr("history.noImages")}');
+      return Text('${context.tr("history.noImages")}');
     }
 
     return Column(
@@ -1257,7 +1309,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              subtitle: Text(value ?? 'Chưa có thông tin'),
+              subtitle: Text(value ?? context.tr('history.noInfo')),
             ))
         : ListTile(
             leading: Icon(icon,
@@ -1270,15 +1322,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            subtitle: Text(value ?? 'Chưa có thông tin'),
+            subtitle: Text(value ?? context.tr('history.noInfo')),
           );
   }
 
   Widget _buildJourneyList(List<Journies> journeys) {
     if (journeys.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text('Chưa có hành trình nào.'),
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(context.tr('history.noJourneys')),
       );
     }
 
@@ -1302,7 +1354,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       subtitle: Text(
         timestamp != null
             ? '${timestamp.day}/${timestamp.month}/${timestamp.year} ${timestamp.hour}:${timestamp.minute}'
-            : 'Không rõ thời gian',
+            : context.tr('history.noInfo'),
       ),
     );
   }
@@ -1398,9 +1450,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text(
-            'Lý Do Hủy Đơn Hàng',
-            style: TextStyle(
+          title: Text(
+            context.tr('history.cancelReason.title'),
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
             ),
@@ -1452,7 +1504,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       child: TextField(
                         controller: otherReasonController,
                         decoration: InputDecoration(
-                          hintText: 'Nhập lý do khác',
+                          hintText: context.tr('history.cancelReason.otherHint'),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -1527,8 +1579,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   // Phần để nhập bình luận
                   TextField(
                     controller: commentController,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập bình luận của bạn',
+                    decoration: InputDecoration(
+                      hintText: context.tr('history.rating.commentHint'),
                     ),
                   ),
                 ],
@@ -1566,7 +1618,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể mở Google Maps')),
+        SnackBar(content: Text(context.tr('history.googleMapsError'))),
       );
     }
   }

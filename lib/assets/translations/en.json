@@ -19,12 +19,12 @@
         "receiverInfo": "Receiver information",
         "createOrder": "Create Order",
         "features": "Our Services",
-        "feature1": "Express Delivery",
-        "feature2": "International",
-        "feature3": "Warehouse",
-        "feature4": "Freight",
-        "feature5": "eCommerce",
-        "feature6": "Support",
+        "feature1": "Create Order",
+        "feature2": "Orders",
+        "feature3": "Sender",
+        "feature4": "Refund",
+        "feature5": "Support",
+        "feature6": "Shipping Fee Lookup",
         "enterOrderCodeWarning": "Please enter order code",
         "orderNotFound": "Order not found",
         "searchError": "Error searching order",
@@ -35,7 +35,11 @@
         "deliveryOptions": "Delivery Options",
         "pickupOptions": "Pickup Options",
         "trackingHistory": "Tracking History",
-        "customerSupport": "Customer Support"
+        "customerSupport": "Customer Support",
+        "changeLanguage": "Change Language",
+        "comingSoon": "This feature is coming soon!",
+        "vietnamese": "Vietnamese",
+        "english": "English"
     },
     "nav_bar": {
         "home": "Home",
@@ -44,6 +48,7 @@
         "me": "Me"
     },
     "history": {
+        "title": "Order History",
         "processing": "Processing",
         "taking": "Picking up",
         "delivering": "Delivering",
@@ -63,7 +68,7 @@
         "recevier": "Receiver",
         "receiverPhone": "Receiver's Phone",
         "receiverAddress": "Receiver's Address",
-        "clickMe": "Click to view",
+        "clickMe": "Click to view on map",
         "weight": "Weight",
         "fee": "Fee",
         "paymentStatus": "Payment Status",
@@ -73,13 +78,56 @@
         "images&signature": "Images & Signature",
         "sendImage": "Sent Image",
         "receiveImage": "Received Image",
-        "noImages": "No images available",
+        "noImages": "No images found.",
         "sendSignature": "Sender's Signature",
         "receiveSignature": "Receiver's Signature",
-        "noSignature": "No signature available",
+        "noSignature": "No signature found.",
         "cancel": "Decline",
         "received": "Received",
-        "rate": "Rate"
+        "rate": "Rate",
+        "all": "All",
+        "createOrder": "Create Order",
+        "searchOrders": "Search orders...",
+        "locationPermissionRequired": "Location permission required to use this feature",
+        "selectTimeRange": "Select time range...",
+        "noImagesOrSignature": "No images or signature found.",
+        "noJourney": "No journey available.",
+        "noNeed": "No longer needed",
+        "wrongProduct": "Product doesn't match description",
+        "other": "Other",
+        "rateOrder": "Rate Order",
+        "enterOtherReason": "Enter other reason",
+        "enterComment": "Enter your comment",
+        "cannotOpenMaps": "Cannot open Google Maps",
+        "send": "Send",
+        "noJourneys": "No journeys available.",
+        "noInfo": "No information",
+        "cancelReason": {
+            "title": "Cancel Order Reason",
+            "noNeed": "No longer needed",
+            "wrongDescription": "Product doesn't match description",
+            "other": "Other",
+            "otherHint": "Enter other reason",
+            "cancel": "Cancel",
+            "send": "Send"
+        },
+        "rating": {
+            "title": "Order Rating",
+            "commentHint": "Enter your comment",
+            "cancel": "Cancel",
+            "send": "Send"
+        },
+        "googleMapsError": "Cannot open Google Maps",
+        "filter": {
+            "all": "All time",
+            "today": "Today",
+            "yesterday": "Yesterday",
+            "3days": "Last 3 days",
+            "7days": "Last 7 days",
+            "1month": "Last 1 month",
+            "1year": "Last 1 year",
+            "3years": "Last 3 years"
+        }
     },
     "chat": {
         "chatList": "Chat List",
@@ -88,7 +136,8 @@
         "hourBefore": "hours ago",
         "now": "Just now",
         "typeSomething": "Type a message",
-        "noChat": "No messages yet"
+        "noChat": "No messages yet",
+        "loading": "Loading..."
     },
     "user_info": {
         "greeting": "Hello!",
@@ -102,7 +151,10 @@
         "logout": "Logout",
         "confirmLogout": "Do you want to log out?",
         "deny": "Cancel",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "edit_title": "Edit Profile",
+        "terms_and_documents": "Terms & Documents",
+        "email": "Email"
     },
     "order_pages": {
         "continue": "Continue",
@@ -136,7 +188,12 @@
             "confirm_delete": "Confirm Deletion",
             "delete_alert": "Are you sure you want to delete this location?",
             "delete": "Delete",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "loading": "Loading",
+            "error": "Error",
+            "noAddressFound": "No address found",
+            "add_new_location": "Add new location",
+            "no_saved_locations": "No saved locations yet"
         },
         "order_detail_page": {
             "i_am_receiver": "I am the receiver",
@@ -160,7 +217,7 @@
             "gift_order": "Gift Order",
             "go_des": "Gifts for friends and family",
             "delivery_to_door": "Door-to-Door Delivery",
-            "dtd_des": "Deliver directly to the receiver’s door",
+            "dtd_des": "Deliver directly to the receiver's door",
             "insurance": "Add Insurance",
             "insurance_added": "Insurance added",
             "shipping_method": "Shipping Method",
@@ -190,7 +247,10 @@
             "fee_calculating": "Calculating...",
             "fee_not_calculated": "Fee not calculated",
             "sender_pays": "Sender Pays",
-            "voucher_selection": "Select Voucher"
+            "voucher_selection": "Select Voucher",
+            "discount": "This voucher reduces",
+            "choose": "Choose",
+            "voucher_detail": "Voucher Details"
         },
         "confirm_page": {
             "success_title": "Success",
@@ -230,13 +290,148 @@
             "creating_order": "Creating order...",
             "confirmation": "Are you sure you want to create this order?",
             "confirm": "Confirm",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "agree": "Agree"
+        },
+        "create_order": {
+            "searchContacts": "Search contacts...",
+            "noContactsFound": "No suitable contacts found",
+            "contactAccessError": "Error accessing contacts",
+            "locationPermissionRequired": "Location permission required to use this feature",
+            "contactPermissionRequired": "Contact permission required to access contacts"
+        },
+        "insurance": {
+            "maxImages": "Maximum 2 images allowed",
+            "confirmDelete": "Confirm Delete",
+            "deleteInsurance": "Are you sure you want to delete this insurance?",
+            "chooseImageSource": "Choose Image Source",
+            "takePhoto": "Take Photo",
+            "chooseFromGallery": "Choose from Gallery",
+            "selectImage": "Select Image",
+            "imagesSelected": "images selected",
+            "invoice": "Invoice",
+            "invoiceDescription": "Enable to fill invoice information",
+            "cannotCreateInvoice": "Cannot create invoice.",
+            "cannotGetInvoiceInfo": "Cannot get invoice information.",
+            "enterNote": "Enter note",
+            "title": "Insurance Details",
+            "companyName": "Company Name",
+            "taxCode": "Tax Code",
+            "companyEmail": "Company Email",
+            "noInvoiceRequired": "No invoice required"
+        },
+        "voucher": {
+            "title": "Vouchers",
+            "error": "Error",
+            "noData": "No data available"
+        },
+        "fee_calculating": {
+            "title": "Shipping Fee Calculator",
+            "transportInfo": "Transport Information",
+            "origin": "Origin",
+            "destination": "Destination",
+            "service": "Service",
+            "standard": "Standard",
+            "express": "Express",
+            "calculate": "Calculate Fee",
+            "estimatedFee": "Estimated Fee"
+        },
+        "refund": {
+            "title": "Refund Request",
+            "inputTitle": "Title",
+            "inputTitleHint": "E.g.: Refund request for damaged order",
+            "inputTitleError": "Please enter a title",
+            "inputTracking": "Tracking Number",
+            "inputTrackingHint": "Enter tracking number",
+            "inputTrackingError": "Please enter tracking number",
+            "inputContent": "Detailed Content",
+            "inputContentHint": "Please describe your issue in detail...",
+            "inputContentError": "Please describe the issue in detail",
+            "inputContentShort": "Content needs to be more detailed (at least 20 characters)",
+            "sending": "Sending...",
+            "sendRequest": "Send Request",
+            "success": "Refund request sent successfully!"
+        },
+        "voice_chat": {
+            "title": "P2P Voice Chat"
+        },
+        "documents": {
+            "title": "Terms & Documents",
+            "private": "Privacy Policy",
+            "business_license": "Business License",
+            "about": "About Service",
+            "services": "TDLogistics Service Introduction",
+            "buu_chinh": "Postal License",
+            "policy": "Terms of Service",
+            "businessLicenseTitle": "BUSINESS REGISTRATION CERTIFICATE",
+            "companyType": "Joint Stock Company",
+            "businessLicenseNumber": "Business License No.:",
+            "issuedBy": "Issued by:",
+            "issuedDate": "Issued date:",
+            "close": "Close",
+            "contentUpdating": "Content is being updated."
+        },
+        "map": {
+            "title": "Route Details"
+        },
+        "services": {
+            "title": "Service Introduction",
+            "express": {
+                "title": "Express Delivery",
+                "description": "High-speed delivery service, ensuring your packages reach recipients in the shortest time. Suitable for important documents and urgent goods."
+            },
+            "economy": {
+                "title": "Economy Delivery",
+                "description": "Cost-optimized shipping solution for businesses and individuals without high time requirements. Reasonable rates, nationwide coverage."
+            },
+            "cod": {
+                "title": "Cash on Delivery (COD)",
+                "description": "Safe and convenient delivery and cash collection. Transparent, fast and accurate cash flow reconciliation, helping you feel secure in online business."
+            },
+            "heavy": {
+                "title": "Heavy Cargo Transport",
+                "description": "Providing specialized solutions for large volume and size shipments, bulky goods. Ensuring safety and on-time delivery."
+            }
+        },
+        "locations_page": {
+            "saved_locations": "Saved Locations",
+            "add_new_location": "Add New Location",
+            "fetching_locations": "Fetching locations...",
+            "no_saved_locations": "No saved locations yet.",
+            "myCompany": "My Company",
+            "myHome": "My Home",
+            "noAddressFound": "No address found."
         }
     },
     "common": {
         "close": "Close",
         "retry": "Retry",
         "save": "Save",
-        "error": "Error: "
+        "error": "Error: ",
+        "loading": "Loading",
+        "noData": "No data available",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "delete": "Delete",
+        "update": "Update"
+    },
+    "help_center": {
+        "title": "Help Center",
+        "faq": "Frequently Asked Questions",
+        "contact": "Contact Us",
+        "facebook": "Facebook",
+        "zalo": "Zalo",
+        "hotline": "Hotline",
+        "email": "Email",
+        "faq1_q": "How to create a new order?",
+        "faq1_a": "To create an order, go to the main screen, tap 'Create Order' or select 'Create Order' in the features section. Then, fill in the sender, receiver, and package information and confirm.",
+        "faq2_q": "How to track an order?",
+        "faq2_a": "You can enter the tracking number in the 'Track Order' box on the main screen, or go to 'Order History' and select the order you want to view details for.",
+        "faq3_q": "What items does TDLogistics ship?",
+        "faq3_a": "We ship most legal goods. However, some items are prohibited or restricted such as: banned substances, weapons, live animals, flammable goods, etc. Please refer to 'Terms & Documents' for details.",
+        "faq4_q": "What is the compensation policy?",
+        "faq4_a": "TDLogistics has a clear compensation policy for loss or damage caused by our fault. The compensation amount depends on the value of the goods and the service you use. Details are specified in the 'Terms of Service'.",
+        "faq5_q": "How is the shipping fee calculated?",
+        "faq5_a": "The fee is calculated based on actual weight or volumetric weight (length x width x height), whichever is greater. The fee also depends on the shipping distance and the service type you choose (express, standard, etc.)."
     }
 }

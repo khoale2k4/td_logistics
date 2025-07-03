@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:tdlogistic_v2/core/service/google.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/create%20order/add_location.dart';
@@ -25,9 +26,9 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
 
   String getLabel(String name) {
     if (name == "COMPANY") {
-      return "Công ty";
+      return context.tr("order_pages.locations_page.myCompany");
     } else if (name == "HOME") {
-      return "Nhà";
+      return context.tr("order_pages.locations_page.myHome");
     }
     return name;
   }
@@ -36,9 +37,9 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Các địa điểm đã lưu",
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          context.tr("order_pages.locations_page.saved_locations"),
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: mainColor,
         leading: IconButton(
@@ -49,7 +50,7 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
         ),
         actions: [
           Tooltip(
-            message: "Thêm địa điểm mới",
+            message: context.tr("order_pages.locations_page.add_new_location"),
             child: IconButton(
               icon: const Icon(Icons.add_location_alt_outlined,
                   color: Colors.white),
@@ -58,7 +59,7 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          const NewLocation(location: "Thêm", isFav: true)),
+                          NewLocation(location: context.tr("order_pages.locations_page.add_new_location"), isFav: true)),
                 );
               },
             ),
@@ -69,14 +70,14 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
       body: BlocBuilder<GetLocationBloc, OrderState>(
         builder: (context, state) {
           if (state is FailGettingLocations) {
-            return Text("Lỗi: ${state.error}");
+            return Text("${context.tr("common.error")} ${state.error}");
           } else if (state is GotLocations) {
             return Container(
               child: buildList(state.locations),
             );
           } else {
-            return const Center(
-              child: Text("Đang lấy các địa điểm"),
+            return Center(
+              child: Text(context.tr("order_pages.locations_page.fetching_locations")),
             );
           }
         },
@@ -114,15 +115,15 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
 
   Widget buildList(List<Location> locs) {
     return locs.isEmpty
-        ? const Center(
+        ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.location_off, size: 80, color: Colors.grey),
-                SizedBox(height: 20),
+                const Icon(Icons.location_off, size: 80, color: Colors.grey),
+                const SizedBox(height: 20),
                 Text(
-                  'Chưa có địa điểm nào được lưu',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  context.tr("order_pages.locations_page.no_saved_locations"),
+                  style: const TextStyle(fontSize: 18, color: Colors.grey),
                 ),
               ],
             ),
@@ -141,7 +142,7 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
                 child: ListTile(
                   leading: const Icon(Icons.location_on, color: Colors.black),
                   title: Text(
-                    getLabel(location.name ?? "Không xác định"),
+                    getLabel(location.name ?? context.tr("common.unknown")),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: FutureBuilder<String?>(
@@ -150,11 +151,11 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
                     builder: (BuildContext context,
                         AsyncSnapshot<String?> snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Text("Đang tải");
+                        return Text(context.tr("common.loading"));
                       } else if (snapshot.hasError) {
-                        return Text('Đã xảy ra lỗi: ${snapshot.error}');
+                        return Text('${context.tr("common.error")} ${snapshot.error}');
                       } else if (!snapshot.hasData || snapshot.data == null) {
-                        return const Text('Không tìm thấy địa chỉ');
+                        return Text(context.tr("order_pages.locations_page.noAddressFound"));
                       } else {
                         return Text(
                           snapshot.data!,

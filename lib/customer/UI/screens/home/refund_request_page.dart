@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tdlogistic_v2/core/constant.dart'; // Import file màu sắc của bạn
 
 class RefundRequestPage extends StatefulWidget {
@@ -64,8 +65,8 @@ class _RefundRequestPageState extends State<RefundRequestPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gửi yêu cầu hoàn cước thành công!'),
+        SnackBar(
+          content: Text(context.tr('order_pages.refund.success')),
           backgroundColor: Colors.green,
         ),
       );
@@ -77,7 +78,7 @@ class _RefundRequestPageState extends State<RefundRequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Yêu cầu Hoàn cước"),
+        title: Text(context.tr("order_pages.refund.title")),
         backgroundColor: mainColor,
         foregroundColor: Colors.white,
         centerTitle: true,
@@ -95,39 +96,39 @@ class _RefundRequestPageState extends State<RefundRequestPage> {
               child: Column(
                 children: [
                   _buildCardInput(
-                    title: "Tiêu đề",
-                    hint: "Ví dụ: Yêu cầu hoàn cước đơn hàng hỏng",
+                    title: context.tr('order_pages.refund.inputTitle'),
+                    hint: context.tr('order_pages.refund.inputTitleHint'),
                     icon: Icons.title,
                     controller: _titleController,
                     validator: (value) =>
                         (value == null || value.trim().isEmpty)
-                            ? 'Vui lòng nhập tiêu đề'
+                            ? context.tr('order_pages.refund.inputTitleError')
                             : null,
                   ),
                   const SizedBox(height: 16),
                   _buildCardInput(
-                    title: "Mã vận đơn",
-                    hint: "Nhập mã vận đơn",
+                    title: context.tr('order_pages.refund.inputTracking'),
+                    hint: context.tr('order_pages.refund.inputTrackingHint'),
                     icon: Icons.qr_code,
                     controller: _trackingController,
                     validator: (value) =>
                         (value == null || value.trim().isEmpty)
-                            ? 'Vui lòng nhập mã vận đơn'
+                            ? context.tr('order_pages.refund.inputTrackingError')
                             : null,
                   ),
                   const SizedBox(height: 16),
                   _buildCardInput(
-                    title: "Nội dung chi tiết",
-                    hint: "Vui lòng mô tả rõ vấn đề bạn gặp phải...",
+                    title: context.tr('order_pages.refund.inputContent'),
+                    hint: context.tr('order_pages.refund.inputContentHint'),
                     icon: Icons.description_outlined,
                     controller: _contentController,
                     maxLines: 6,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Vui lòng mô tả chi tiết vấn đề';
+                        return context.tr('order_pages.refund.inputContentError');
                       }
                       if (value.length < 20) {
-                        return 'Nội dung cần chi tiết hơn (ít nhất 20 ký tự)';
+                        return context.tr('order_pages.refund.inputContentShort');
                       }
                       return null;
                     },
@@ -146,7 +147,7 @@ class _RefundRequestPageState extends State<RefundRequestPage> {
                               ),
                             )
                           : const Icon(Icons.send_outlined),
-                      label: Text(_isLoading ? "Đang gửi..." : "Gửi Yêu Cầu"),
+                      label: Text(_isLoading ? context.tr('order_pages.refund.sending') : context.tr('order_pages.refund.sendRequest')),
                       onPressed: _isLoading ? null : _submitForm,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),

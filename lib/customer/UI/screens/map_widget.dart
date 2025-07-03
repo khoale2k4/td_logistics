@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
@@ -38,9 +39,9 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mainColor,
-        title: const Text(
-          'Chi tiết lộ trình',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          context.tr('order_pages.map.title'),
+          style: const TextStyle(color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -60,7 +61,7 @@ class _TaskRouteWidgetState extends State<TaskRouteWidget> {
                 });
                 return _buildMap();
               }
-              return const Center(child: Text('Không có dữ liệu'));
+              return Center(child: Text(context.tr('common.noData')));
             },
           ),
           _buildZoomControls(),

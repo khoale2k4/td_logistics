@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class InsuranceDetailsPage extends StatelessWidget {
   final TextEditingController noteController;
@@ -24,7 +25,7 @@ class InsuranceDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chi tiết bảo hiểm"),
+        title: Text(context.tr("order_pages.insurance.title")),
         centerTitle: true,
         backgroundColor: Colors.white,
       ),
@@ -35,23 +36,23 @@ class InsuranceDetailsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Note Section
-            const Text(
-              "Ghi chú",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Text(
+              context.tr("order_pages.insurance.enterNote"),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 8),
             Text(
               noteController.text.isNotEmpty
                   ? noteController.text
-                  : "Không có ghi chú",
+                  : context.tr("common.noData"),
               style: const TextStyle(fontSize: 16),
             ),
             const Divider(height: 30),
 
             // Images Section
-            const Text(
-              "Hình ảnh",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Text(
+              context.tr("history.images&signature"),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 8),
             images.isNotEmpty
@@ -76,16 +77,16 @@ class InsuranceDetailsPage extends StatelessWidget {
                             ))
                         .toList(),
                   )
-                : const Text(
-                    "Chưa có ảnh nào được thêm",
-                    style: TextStyle(color: Colors.grey),
+                : Text(
+                    context.tr("history.noImages"),
+                    style: const TextStyle(color: Colors.grey),
                   ),
             const Divider(height: 30),
 
             // Invoice Information Section
-            const Text(
-              "Thông tin hóa đơn",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Text(
+              context.tr("order_pages.insurance.invoice"),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 8),
             isInvoiceEnabled
@@ -93,15 +94,15 @@ class InsuranceDetailsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildDetailRow(
-                          "Tên công ty", companyNameController.text),
-                      _buildDetailRow("Địa chỉ", addressController.text),
-                      _buildDetailRow("Mã số thuế", taxCodeController.text),
-                      _buildDetailRow("Email công ty", emailController.text),
+                          context.tr("order_pages.insurance.companyName"), companyNameController.text),
+                      _buildDetailRow(context.tr("history.address"), addressController.text),
+                      _buildDetailRow(context.tr("order_pages.insurance.taxCode"), taxCodeController.text),
+                      _buildDetailRow(context.tr("order_pages.insurance.companyEmail"), emailController.text),
                     ],
                   )
-                : const Text(
-                    "Không yêu cầu hóa đơn",
-                    style: TextStyle(color: Colors.grey),
+                : Text(
+                    context.tr("order_pages.insurance.noInvoiceRequired"),
+                    style: const TextStyle(color: Colors.grey),
                   ),
             const Divider(height: 30),
           ],
@@ -111,22 +112,24 @@ class InsuranceDetailsPage extends StatelessWidget {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "$label: ",
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          Expanded(
-            child: Text(
-              value.isNotEmpty ? value : "Chưa có thông tin",
-              style: const TextStyle(fontSize: 16),
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "$label: ",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-          ),
-        ],
+            Expanded(
+              child: Text(
+                value.isNotEmpty ? value : context.tr("common.noData"),
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

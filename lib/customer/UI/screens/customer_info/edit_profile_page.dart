@@ -93,7 +93,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               const SizedBox(height: 20),
               buildFieldText(context, context.tr("history.phone"), phoneController, enabled: false),
               const SizedBox(height: 20),
-              buildFieldText(context, "Email", emailController),
+              buildFieldText(context, context.tr("user_info.email"), emailController),
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,

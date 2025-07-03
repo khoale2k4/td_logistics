@@ -50,6 +50,17 @@ class _HistoryPageState extends State<HistoryPage> {
   List<Order> _orders = [];
   bool _isLoading = false;
 
+  final List<Map<String, String>> _dateFilters = [
+    {'label': 'history.filter.all', 'days': ''},
+    {'label': 'history.filter.today', 'days': '0'},
+    {'label': 'history.filter.yesterday', 'days': '1'},
+    {'label': 'history.filter.3days', 'days': '3'},
+    {'label': 'history.filter.7days', 'days': '7'},
+    {'label': 'history.filter.1month', 'months': '1'},
+    {'label': 'history.filter.1year', 'years': '1'},
+    {'label': 'history.filter.3years', 'years': '3'},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -67,10 +78,10 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<void> _requestLocationPermission() async {
     final status = await Permission.location.request();
     if (!status.isGranted && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Cần cấp quyền vị trí để sử dụng tính năng này')),
-      );
+              ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr('history.locationPermissionRequired'))),
+        );
     }
   }
 
@@ -369,22 +380,17 @@ class _HistoryPageState extends State<HistoryPage> {
         return ListView(
           shrinkWrap: true,
           children: <Widget>[
-            _buildDateFilterTile('Hôm nay', _applyDateFilterForToday),
-            _buildDateFilterTile('Hôm qua', _applyDateFilterForYesterday),
-            _buildDateFilterTile(
-                '3 ngày qua', () => _applyDateFilterForLastDays(3)),
-            _buildDateFilterTile(
-                '7 ngày qua', () => _applyDateFilterForLastDays(7)),
-            _buildDateFilterTile(
-                '1 tháng qua', () => _applyDateFilterForLastMonths(1)),
-            _buildDateFilterTile(
-                '1 năm qua', () => _applyDateFilterForLastYears(1)),
-            _buildDateFilterTile(
-                '3 năm qua', () => _applyDateFilterForLastYears(3)),
+            _buildDateFilterTile(context.tr('history.filter.today'), _applyDateFilterForToday),
+            _buildDateFilterTile(context.tr('history.filter.yesterday'), _applyDateFilterForYesterday),
+            _buildDateFilterTile(context.tr('history.filter.3days'), () => _applyDateFilterForLastDays(3)),
+            _buildDateFilterTile(context.tr('history.filter.7days'), () => _applyDateFilterForLastDays(7)),
+            _buildDateFilterTile(context.tr('history.filter.1month'), () => _applyDateFilterForLastMonths(1)),
+            _buildDateFilterTile(context.tr('history.filter.1year'), () => _applyDateFilterForLastYears(1)),
+            _buildDateFilterTile(context.tr('history.filter.3years'), () => _applyDateFilterForLastYears(3)),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.date_range_outlined),
-              title: const Text('Chọn khoảng thời gian...'),
+              title: Text(context.tr('history.selectTimeRange')),
               onTap: _pickDateRange,
             ),
           ],
@@ -417,30 +423,29 @@ class _HistoryPageState extends State<HistoryPage> {
   // Các hàm logic ngày tháng không đổi
   void _applyDateFilterForToday() {
     final now = DateTime.now();
-    _applyDateFilter('Hôm nay', now, now);
+    _applyDateFilter(context.tr('history.filter.today'), now, now);
   }
 
   void _applyDateFilterForYesterday() {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    _applyDateFilter('Hôm qua', yesterday, yesterday);
+    _applyDateFilter(context.tr('history.filter.yesterday'), yesterday, yesterday);
   }
 
   void _applyDateFilterForLastDays(int days) {
     final now = DateTime.now();
-    _applyDateFilter(
-        '$days ngày qua', now.subtract(Duration(days: days - 1)), now);
+    _applyDateFilter(context.tr('history.filter.3days'), now.subtract(Duration(days: days - 1)), now);
   }
 
   void _applyDateFilterForLastMonths(int months) {
     final now = DateTime.now();
-    _applyDateFilter('$months tháng qua',
+    _applyDateFilter(context.tr('history.filter.1month'),
         DateTime(now.year, now.month - months, now.day), now);
   }
 
   void _applyDateFilterForLastYears(int years) {
     final now = DateTime.now();
-    _applyDateFilter(
-        '$years năm qua', DateTime(now.year - years, now.month, now.day), now);
+    _applyDateFilter(context.tr('history.filter.1year'),
+        DateTime(now.year - years, now.month, now.day), now);
   }
 
   Future<void> _pickDateRange() async {
@@ -675,7 +680,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                 );
               }
-              return const Text('Không tìm thấy ảnh hoặc chữ ký.');
+              return Text(context.tr('history.noImagesOrSignature'));
             },
           ),
         ],
@@ -815,10 +820,10 @@ class _HistoryPageState extends State<HistoryPage> {
 
   Widget _buildJourneyList(List<Journies> journeys) {
     if (journeys.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text('Chưa có hành trình nào.'),
-      );
+              return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(context.tr('history.noJourney')),
+        );
     }
 
     return ListView.builder(
@@ -956,7 +961,7 @@ class _HistoryPageState extends State<HistoryPage> {
             child: ElevatedButton.icon(
               onPressed: () => Share.share("abcde"),
               icon: const Icon(Icons.share, color: Colors.blue),
-              label: const Text("Chia sẻ"),
+              label: Text(context.tr("history.share")),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade100,
                 foregroundColor: Colors.blue,
@@ -995,7 +1000,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    title: const Text('Không còn nhu cầu'),
+                    title: Text(context.tr('history.noNeed')),
                     leading: Radio<String>(
                       value: 'Không còn nhu cầu',
                       groupValue: selectedReason,
@@ -1007,7 +1012,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   ListTile(
-                    title: const Text('Sản phẩm không đúng mô tả'),
+                    title: Text(context.tr('history.wrongProduct')),
                     leading: Radio<String>(
                       value: 'Sản phẩm không đúng mô tả',
                       groupValue: selectedReason,
@@ -1019,7 +1024,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   ListTile(
-                    title: const Text('Khác'),
+                    title: Text(context.tr('history.other')),
                     leading: Radio<String>(
                       value: 'Khác',
                       groupValue: selectedReason,
@@ -1055,7 +1060,7 @@ class _HistoryPageState extends State<HistoryPage> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey,
               ),
-              child: const Text('Hủy'),
+              child: Text(context.tr('common.cancel')),
             ),
             TextButton(
               onPressed: () {
@@ -1064,9 +1069,9 @@ class _HistoryPageState extends State<HistoryPage> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.blue,
               ),
-              child: const Text(
-                'Gửi',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                context.tr('history.send'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -1083,7 +1088,7 @@ class _HistoryPageState extends State<HistoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Đánh Giá Đơn Hàng'),
+          title: Text(context.tr('history.rateOrder')),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Column(
@@ -1111,8 +1116,8 @@ class _HistoryPageState extends State<HistoryPage> {
                   // Phần để nhập bình luận
                   TextField(
                     controller: commentController,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập bình luận của bạn',
+                    decoration: InputDecoration(
+                      hintText: context.tr('history.enterComment'),
                     ),
                   ),
                 ],
@@ -1124,13 +1129,13 @@ class _HistoryPageState extends State<HistoryPage> {
               onPressed: () {
                 Navigator.of(context).pop(); // Đóng dialog
               },
-              child: const Text('Hủy'),
+              child: Text(context.tr('common.cancel')),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Gửi'),
+              child: Text(context.tr('history.send')),
             ),
           ],
         );
@@ -1150,7 +1155,7 @@ class _HistoryPageState extends State<HistoryPage> {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể mở Google Maps')),
+        SnackBar(content: Text(context.tr('history.cannotOpenMaps'))),
       );
     }
   }

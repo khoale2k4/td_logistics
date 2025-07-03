@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:http/http.dart' as http;
@@ -83,7 +84,7 @@ class _InsuranceFormState extends State<InsuranceForm> {
   Future<void> _pickImage(ImageSource source) async {
     if (_images.length >= 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chỉ được chọn tối đa 2 ảnh')),
+        SnackBar(content: Text(context.tr('order_pages.insurance.maxImages'))),
       );
       return;
     }
@@ -101,14 +102,14 @@ class _InsuranceFormState extends State<InsuranceForm> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Xác nhận xóa'),
-          content: const Text('Bạn có chắc chắn muốn xóa bảo hiểm này?'),
+          title: Text(context.tr('order_pages.insurance.confirmDelete')),
+          content: Text(context.tr('order_pages.insurance.deleteInsurance')),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Đóng hộp thoại
               },
-              child: const Text('Hủy'),
+              child: Text(context.tr('common.cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -119,7 +120,7 @@ class _InsuranceFormState extends State<InsuranceForm> {
                 Navigator.pop(context); // Đóng hộp thoại sau khi xóa
                 Navigator.pop(context);
               },
-              child: const Text('Xóa', style: TextStyle(color: Colors.white)),
+              child: Text(context.tr('common.delete'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -132,9 +133,9 @@ class _InsuranceFormState extends State<InsuranceForm> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text(
-          'Bảo hiểm',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('order_pages.insurance.title'),
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -178,15 +179,15 @@ class _InsuranceFormState extends State<InsuranceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Ghi chú",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        Text(
+          context.tr("order_pages.insurance.enterNote"),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _noteController,
-          decoration: const InputDecoration(
-            hintText: 'Nhập ghi chú',
+          decoration: InputDecoration(
+            hintText: context.tr('order_pages.insurance.enterNote'),
             border: OutlineInputBorder(),
             filled: true,
             fillColor: Colors.white, // Light background for input

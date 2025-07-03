@@ -49,6 +49,86 @@ class _CustomerInforState extends State<CustomerInfor> {
     Navigator.pop(context); // Đóng dialog sau khi chọn
   }
 
+  void _showLanguageDialog(BuildContext context) {
+    final languages = [
+      {'code': 'vi', 'label': 'Tiếng Việt', 'flag': '🇻🇳'},
+      {'code': 'en', 'label': 'English', 'flag': '🇺🇸'},
+      {'code': 'th', 'label': 'ภาษาไทย', 'flag': '🇹🇭'},
+      {'code': 'zh', 'label': '中文', 'flag': '🇨🇳'},
+      {'code': 'ko', 'label': '한국어', 'flag': '🇰🇷'},
+      {'code': 'ja', 'label': '日本語', 'flag': '🇯🇵'},
+    ];
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            context.tr('home.changeLanguage'),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: mainColor,
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final lang in languages)
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: context.locale.languageCode == lang['code']
+                          ? mainColor
+                          : Colors.grey.shade300,
+                      width: context.locale.languageCode == lang['code'] ? 2 : 1,
+                    ),
+                    color: context.locale.languageCode == lang['code']
+                        ? mainColor.withOpacity(0.1)
+                        : Colors.transparent,
+                  ),
+                  child: ListTile(
+                    leading: Text(
+                      lang['flag']!,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    title: Text(
+                      lang['label']!,
+                      style: TextStyle(
+                        fontWeight: context.locale.languageCode == lang['code']
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: context.locale.languageCode == lang['code']
+                            ? mainColor
+                            : Colors.black87,
+                      ),
+                    ),
+                    trailing: context.locale.languageCode == lang['code']
+                        ? Icon(Icons.check_circle, color: mainColor)
+                        : null,
+                    onTap: () => _changeLanguage(lang['code']!),
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                context.tr('common.cancel'),
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Xử lý điều hướng cho các thẻ tính năng
   void toFeature(int featureIndex) {
     print("Feature selected: $featureIndex");
@@ -82,10 +162,10 @@ class _CustomerInforState extends State<CustomerInfor> {
           MaterialPageRoute(builder: (context) => const FeeCalculationPage()),
         );
         break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chức năng này sắp ra mắt!')),
-        );
+              default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.tr('home.comingSoon'))),
+          );
         break;
     }
   }
@@ -95,7 +175,7 @@ class _CustomerInforState extends State<CustomerInfor> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          context.tr("more_tab.title"), // Đổi tiêu đề cho phù hợp
+          context.tr("user_info.greeting"), // Đổi tiêu đề cho phù hợp
           style:
               const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
@@ -151,7 +231,7 @@ class _CustomerInforState extends State<CustomerInfor> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  widget.user.phoneNumber ?? 'Chưa có SĐT',
+                  widget.user.phoneNumber ?? context.tr('user_info.myPhone'),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.8),
                     fontSize: 16,
@@ -170,7 +250,7 @@ class _CustomerInforState extends State<CustomerInfor> {
                 ),
               );
             },
-            tooltip: 'Chỉnh sửa thông tin',
+            tooltip: context.tr('user_info.edit_title'),
           )
         ],
       ),
@@ -305,7 +385,7 @@ class _CustomerInforState extends State<CustomerInfor> {
         children: [
           _buildInfoTile(
             icon: Icons.description_outlined,
-            title: 'Điều khoản & Giấy tờ',
+            title: context.tr('user_info.terms_and_documents'),
             onTap: () {
               Navigator.push(
                 context,
@@ -318,7 +398,7 @@ class _CustomerInforState extends State<CustomerInfor> {
 
           _buildInfoTile(
             icon: Icons.support_agent_outlined,
-            title: 'Hỗ trợ khách hàng',
+            title: context.tr('home.customerSupport'),
             onTap: () {
               Navigator.push(
                 context,
@@ -330,26 +410,9 @@ class _CustomerInforState extends State<CustomerInfor> {
 
           _buildInfoTile(
             icon: Icons.language_outlined,
-            title: 'Thay đổi ngôn ngữ',
+            title: context.tr('home.changeLanguage'),
             onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext dialogContext) {
-                    return AlertDialog(
-                      title: const Text('Chọn ngôn ngữ'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListTile(
-                              title: const Text('Tiếng Việt'),
-                              onTap: () => _changeLanguage('vi')),
-                          ListTile(
-                              title: const Text('English'),
-                              onTap: () => _changeLanguage('en')),
-                        ],
-                      ),
-                    );
-                  });
+              _showLanguageDialog(context);
             },
           ),
         ],

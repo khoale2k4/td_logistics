@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
 import 'package:tdlogistic_v2/core/repositories/order_repository.dart';
 import 'package:tdlogistic_v2/core/service/google.dart';
@@ -94,7 +95,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tra cứu cước phí"),
+        title: Text(context.tr("order_pages.fee_calculating.title")),
         backgroundColor: mainColor,
         foregroundColor: Colors.white,
       ),
@@ -107,12 +108,12 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // --- VÙNG NHẬP LIỆU ĐỊA CHỈ ---
-              const Text("Thông tin vận chuyển",
+              Text(context.tr('order_pages.fee_calculating.transportInfo'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               MySearchBar(
                   controller: _originController,
-                  labelText: 'Điểm đi',
+                  labelText: context.tr('order_pages.fee_calculating.origin'),
                   icon: const Icon(Icons.location_on_outlined),
                   onChanged: () {},
                   onChoose: () {},
@@ -123,7 +124,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
               const SizedBox(height: 16),
               MySearchBar(
                   controller: _destinationController,
-                  labelText: 'Điểm đến',
+                  labelText: context.tr('order_pages.fee_calculating.destination'),
                   icon: const Icon(Icons.flag_outlined),
                   onChanged: () {},
                   onTap: () {},
@@ -151,21 +152,21 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
               const SizedBox(height: 24),
 
               // --- VÙNG CHỌN DỊCH VỤ ---
-              const Text("Dịch vụ",
+              Text(context.tr('order_pages.fee_calculating.service'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ChoiceChip(
-                    label: const Text('Tiêu chuẩn'),
+                    label: Text(context.tr('order_pages.fee_calculating.standard')),
                     selected: _selectedService == 'standard',
                     onSelected: (selected) =>
                         setState(() => _selectedService = 'standard'),
                   ),
                   const SizedBox(width: 10),
                   ChoiceChip(
-                    label: const Text('Nhanh'),
+                    label: Text(context.tr('order_pages.fee_calculating.express')),
                     selected: _selectedService == 'express',
                     onSelected: (selected) =>
                         setState(() => _selectedService = 'express'),
@@ -181,7 +182,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
                     : const Icon(Icons.calculate_outlined),
                 label: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Tra cứu cước phí'),
+                    : Text(context.tr('order_pages.fee_calculating.calculate')),
                 onPressed: _isLoading ? null : _calculateFee,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
@@ -201,7 +202,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        const Text("Cước phí dự kiến",
+                        Text(context.tr('order_pages.fee_calculating.estimatedFee'),
                             style:
                                 TextStyle(fontSize: 16, color: Colors.black54)),
                         const SizedBox(height: 8),
