@@ -34,6 +34,7 @@ class _VoucherSelectionPageState extends State<VoucherSelectionPage> {
         ),
         backgroundColor: Colors.red,
       ),
+      backgroundColor: Colors.grey[100],
       body: BlocBuilder<GetVoucherBloc, OrderState>(
         builder: (context, state) {
           if (state is GettingPositions) {

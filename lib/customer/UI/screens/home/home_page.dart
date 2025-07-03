@@ -11,10 +11,9 @@ import 'package:tdlogistic_v2/core/repositories/order_repository.dart';
 import 'package:tdlogistic_v2/core/service/secure_storage_service.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/contact/chats_screen.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/create%20order/all_locations.dart';
-import 'package:tdlogistic_v2/customer/UI/screens/create%20order/create_order.dart';
-import 'package:tdlogistic_v2/customer/UI/screens/customer_info/info_display_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/history.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/home/fee_calculating.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/home/help_center_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/home/refund_request_page.dart';
 import 'package:tdlogistic_v2/customer/UI/screens/map_widget.dart';
 import 'package:tdlogistic_v2/customer/bloc/order_bloc.dart';
@@ -653,13 +652,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       );
     } else if (feature == 5) {
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => const InfoDisplayPage(
-                    title: 'Hỗ trợ khách hàng',
-                    content:
-                        'Thông tin liên hệ hỗ trợ: \n\n- Hotline: 1900 xxxx\n- Email: support@tdlogistic.vn\n- Địa chỉ: ...',
-                  )));
+        context,
+        MaterialPageRoute(builder: (_) => HelpCenterPage()),
+      );
     } else if (feature == 6) {
       Navigator.push(
         context,

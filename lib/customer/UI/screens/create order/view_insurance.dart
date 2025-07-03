@@ -28,7 +28,7 @@ class InsuranceDetailsPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -98,6 +98,7 @@ class _FeeCalculationPageState extends State<FeeCalculationPage> {
         backgroundColor: mainColor,
         foregroundColor: Colors.white,
       ),
+      backgroundColor: Colors.grey[100],
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(

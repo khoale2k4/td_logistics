@@ -79,7 +79,8 @@ class _NewLocationState extends State<NewLocation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr("order_pages.locations_page.pick_a_location")),
+        title: Text(context.tr("order_pages.locations_page.pick_a_location"), style: const TextStyle(color: Colors.white)),
+        backgroundColor: mainColor,
         actions: [
           if (widget.isEdit)
             IconButton(
@@ -96,6 +97,7 @@ class _NewLocationState extends State<NewLocation> {
             ),
         ],
       ),
+      backgroundColor: Colors.grey[100],
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -202,7 +204,8 @@ class _NewMarkState extends State<NewMark> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr("order_pages.locations_page.confirm_location")),
+        title: Text(context.tr("order_pages.locations_page.confirm_location"), style: const TextStyle(color: Colors.white)),
+        backgroundColor: mainColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -335,7 +338,8 @@ class _NewFavMarkState extends State<NewFavMark> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr("order_pages.locations_page.confirm_location")),
+        title: Text(context.tr("order_pages.locations_page.confirm_location"), style: const TextStyle(color: Colors.white)),
+        backgroundColor: mainColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

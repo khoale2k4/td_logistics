@@ -9,6 +9,7 @@ class InsuranceDetailPage extends StatelessWidget {
         title: Text('Chi tiết bảo hiểm', style: TextStyle(color: Colors.white),),
         backgroundColor: mainColor, // Màu sắc theo ứng dụng
       ),
+      backgroundColor: Colors.grey[100],
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(

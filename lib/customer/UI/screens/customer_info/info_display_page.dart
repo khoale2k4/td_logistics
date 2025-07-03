@@ -20,6 +20,7 @@ class InfoDisplayPage extends StatelessWidget {
         backgroundColor: mainColor,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+      backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Text(

@@ -65,6 +65,7 @@ class _AllLocationsPageState extends State<AllLocationsPage> {
           ),
         ],
       ),
+      backgroundColor: Colors.grey[100],
       body: BlocBuilder<GetLocationBloc, OrderState>(
         builder: (context, state) {
           if (state is FailGettingLocations) {

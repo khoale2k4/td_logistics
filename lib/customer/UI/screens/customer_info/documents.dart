@@ -1,9 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/customer_info/info_display_page.dart';
+import 'package:tdlogistic_v2/customer/UI/screens/customer_info/services.dart';
 
-class TermsAndConditionsPage extends StatelessWidget {
-  final doc = {
+enum DocumentType { text, multiImage, placeholder }
+
+class TermsAndDocumentsPage extends StatelessWidget {
+  const TermsAndDocumentsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> documents = [
+      {
+        'id': 'business_license',
+        'title': 'Giấy phép kinh doanh',
+        'icon': Icons.business_center_outlined,
+        'type': DocumentType.text,
+      },
+      {
+        'id': 'services',
+        'title': 'Giới thiệu dịch vụ TDLogistics',
+        'icon': Icons.info_outline,
+        'type': DocumentType.text,
+      },
+      {
+        'id': 'buu_chinh',
+        'title': 'Giấy phép bưu chính',
+        'icon': Icons.mail_outline,
+        'type': DocumentType.multiImage,
+        'data': [
+          'https://tdlogistics.net.vn/_next/image?url=%2Flicense%2F0005.jpg&w=3840&q=75',
+          'https://tdlogistics.net.vn/_next/image?url=%2Flicense%2F0004.jpg&w=3840&q=75',
+          'https://tdlogistics.net.vn/_next/image?url=%2Flicense%2F0003.jpg&w=3840&q=75',
+        ],
+      },
+      {
+        'id': 'policy',
         'title': 'Điều khoản dịch vụ',
+        'icon': Icons.description_outlined,
+        'type': DocumentType.text,
         'data': """
 ĐIỀU KHOẢN VÀ ĐIỀU KIỆN SỬ DỤNG ỨNG DỤNG TDLOGISTICS
 Điều 1. Quy định chung:
@@ -203,23 +239,309 @@ Nếu bất kỳ điều khoản nào của Điều khoản sử dụng này b�
 Điều khoản sử dụng có thể được bổ sung, chỉnh sửa và thay đổi từng thời điểm. TDLogistics sẽ thông báo cho Khách hàng thông qua Ứng dụng và/hoặc Email về các bổ sung, chỉnh sửa và/hoặc thay đổi của Điều khoản sử dụng. Việc tiếp tục sử dụng Ứng dụng sau khi nhận được thông báo này sẽ tạo thành sự đồng ý và chấp nhận pháp lý đối với các bổ sung, chỉnh sửa, và/hoặc thay đổi.
 Điều Khoản Sử Dụng này có hiệu lực kể từ ngày 01/08/2021.
         """,
-      };
+      },
+      {
+        'id': 'private',
+        'title': 'Chính sách bảo mật thông tin',
+        'icon': Icons.privacy_tip_outlined,
+        'type': DocumentType.text,
+        'data': """
+Chính sách bảo mật
+Cập nhật lần cuối: 08/02/2023
+
+1. Mục đích và phạm vi thu thập
+TDLogistics chỉ thu thập các thông tin cá nhân cần thiết như họ tên, số điện thoại, email, vị trí của người dùng nhằm mục đích:
+
+Liên hệ xác nhận khi khách hàng đăng ký sử dụng dịch vụ
+Hỗ trợ khách hàng trong quá trình sử dụng dịch vụ
+TDLogistics không lưu giữ thông tin tài khoản ngân hàng hoặc bất kỳ thông tin nhạy cảm nào khác của người dùng.
+
+2. Phạm vi sử dụng thông tin
+Thông tin cá nhân được sử dụng để:
+
+Cung cấp dịch vụ đến khách hàng
+Gửi thông báo về hoạt động của khách hàng với TDLogistics
+Liên hệ và giải quyết các trường hợp đặc biệt
+TDLogistics cam kết không sử dụng thông tin cá nhân ngoài mục đích phục vụ khách hàng, trừ khi có yêu cầu từ cơ quan pháp luật.
+
+3. Thời gian lưu trữ thông tin
+Thông tin cá nhân được lưu trữ cho đến khi có yêu cầu hủy bỏ từ phía khách hàng hoặc TDLogistics không còn mục đích sử dụng.
+
+4. Đơn vị thu thập và quản lý thông tin
+Công ty TDLogistics
+
+Địa chỉ: 83 Đinh Tiên Hoàng, P1, Quận Bình Thạnh, Tp Hồ Chí Minh, Việt Nam
+
+Hotline: +84 977678999
+
+Email: info@tdtel.vn
+
+5. Quyền của khách hàng
+Khách hàng có quyền kiểm tra, cập nhật, chỉnh sửa hoặc yêu cầu hủy bỏ thông tin cá nhân của mình bằng cách liên hệ trực tiếp qua email hoặc hotline.
+
+6. Cam kết bảo mật
+TDLogistics cam kết bảo mật tuyệt đối thông tin cá nhân của khách hàng, không tiết lộ cho bên thứ ba nếu không có sự đồng ý từ khách hàng, trừ trường hợp pháp luật yêu cầu.
+
+Trong trường hợp xảy ra sự cố rò rỉ thông tin, TDLogistics sẽ thông báo kịp thời đến khách hàng và cơ quan chức năng để phối hợp xử lý.
+
+7. Khiếu nại
+Nếu khách hàng phát hiện thông tin cá nhân bị sử dụng sai mục đích, xin vui lòng gửi email đến info@tdtel.vn để được xử lý trong vòng 24 giờ.
+
+8. Phương thức mã hóa và bảo vệ dữ liệu
+Tất cả dữ liệu cá nhân do TDLogistics thu thập đều được mã hóa khi truyền tải qua Internet bằng các giao thức bảo mật như HTTPS.
+
+Chúng tôi áp dụng các biện pháp kỹ thuật và tổ chức phù hợp để bảo vệ thông tin khỏi truy cập trái phép, thay đổi, tiết lộ hoặc phá hủy.
+
+9. Phương thức tạo tài khoản và xác thực
+Người dùng có thể tạo tài khoản bằng email và mật khẩu hoặc thông qua phương thức xác thực khác như mã OTP. TDLogistics không sử dụng các hình thức xác thực sinh trắc học.
+
+10. Yêu cầu xóa dữ liệu cá nhân
+Nếu bạn muốn yêu cầu xóa một phần hoặc toàn bộ dữ liệu cá nhân mà không cần xóa tài khoản, vui lòng liên hệ qua email:
+
+info@tdtel.vn
+11. Liên kết yêu cầu xóa tài khoản hoặc dữ liệu
+Nếu bạn muốn yêu cầu xóa tài khoản và toàn bộ dữ liệu cá nhân, vui lòng nhấn vào liên kết dưới đây:
+
+Gửi yêu cầu xóa tài khoản qua email
+        """,
+      },
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Điều khoản & Giấy tờ",
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: mainColor,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      backgroundColor: Colors.grey[100],
+      body: ListView.separated(
+        itemCount: documents.length,
+        separatorBuilder: (context, index) =>
+            const Divider(height: 1, indent: 16, endIndent: 16),
+        itemBuilder: (context, index) {
+          final doc = documents[index];
+          return ListTile(
+            leading: Icon(doc['icon'] as IconData, color: Colors.grey.shade700),
+            title: Text(doc['title'] as String,
+                style: const TextStyle(fontSize: 16)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              final type = doc['type'] as DocumentType;
+              final title = doc['title'] as String;
+              final id = doc['id'] as String;
+
+              switch (type) {
+                case DocumentType.multiImage:
+                  final imageUrls = doc['data'] as List<String>;
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => MultiImageDisplayPage(
+                              title: title, imageUrls: imageUrls)));
+                  break;
+                case DocumentType.text:
+                  if (id == 'private') {
+                    final content = doc['data'] as String;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => InfoDisplayPage(
+                                title: title, content: content)));
+                  } else if (id == 'business_license') {
+                    _showBusinessLicensePopup(context);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const AboutServicePage()),
+                    );
+                  }
+                  break;
+                case DocumentType.placeholder:
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Nội dung đang được cập nhật.')),
+                  );
+                  break;
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showBusinessLicensePopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 5,
+          child: Container(
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: Column(
+              mainAxisSize:
+                  MainAxisSize.min, // Giúp dialog co lại vừa với nội dung
+              children: [
+                // 1. Logo công ty
+                Image.asset('lib/assets/logo.png',
+                    height: 60), // Đảm bảo bạn có logo ở đường dẫn này
+                const SizedBox(height: 16),
+
+                // 2. Tên giấy phép
+                const Text(
+                  'GIẤY CHỨNG NHẬN ĐĂNG KÝ DOANH NGHIỆP',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: mainColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'CÔNG TY CỔ PHẦN', // Loại hình công ty
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const Divider(height: 32, thickness: 1),
+
+                // 3. Các thông tin chi tiết
+                _buildInfoRow(
+                    'Số GPKD:', '0123456789'), // <-- THAY THÔNG TIN CỦA BẠN
+                const SizedBox(height: 12),
+                _buildInfoRow('Nơi cấp:',
+                    'Sở Kế hoạch và Đầu tư TP. Hồ Chí Minh'), // <-- THAY THÔNG TIN CỦA BẠN
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                    'Ngày cấp:', '01/01/2020'), // <-- THAY THÔNG TIN CỦA BẠN
+                const SizedBox(height: 32),
+
+                // Nút đóng
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.grey.shade200,
+                    ),
+                    child: const Text('Đóng'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class MultiImageDisplayPage extends StatefulWidget {
+  final String title;
+  final List<String> imageUrls;
+
+  const MultiImageDisplayPage({
+    super.key,
+    required this.title,
+    required this.imageUrls,
+  });
+
+  @override
+  State<MultiImageDisplayPage> createState() => _MultiImageDisplayPageState();
+}
+
+class _MultiImageDisplayPageState extends State<MultiImageDisplayPage> {
+  int _currentPage = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(doc["title"]??"", style: const TextStyle(color: Colors.white)),
+        title: Text(widget.title, style: const TextStyle(color: Colors.white)),
         backgroundColor: mainColor,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      backgroundColor: Colors.grey[100],
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(
-          doc["content"]??"",
-          style: const TextStyle(fontSize: 16, height: 1.5),
-        ),
+      backgroundColor: Colors.black87,
+      body: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          PageView.builder(
+            itemCount: widget.imageUrls.length,
+            onPageChanged: (page) {
+              setState(() {
+                _currentPage = page;
+              });
+            },
+            itemBuilder: (context, index) {
+              return InteractiveViewer(
+                // Cho phép người dùng phóng to, thu nhỏ ảnh
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: CachedNetworkImage(
+                  imageUrl: widget.imageUrls[index],
+                  placeholder: (context, url) =>
+                      const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) =>
+                      const Center(child: Icon(Icons.error, color: Colors.red)),
+                  fit: BoxFit.contain,
+                ),
+              );
+            },
+          ),
+          // Hiển thị số trang hiện tại
+          if (widget.imageUrls.length > 1)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Trang ${_currentPage + 1} / ${widget.imageUrls.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  shadows: [Shadow(blurRadius: 2, color: Colors.black)],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
