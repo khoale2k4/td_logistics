@@ -53,3 +53,25 @@ class FailedUpdateInfo extends AuthState{
 }
 
 class UpdatingInfo extends AuthState{}
+
+class StaffForgotPasswordLoading extends AuthState {}
+
+class StaffForgotPasswordSuccess extends AuthState {
+  final String email;
+  final String id;
+
+  StaffForgotPasswordSuccess(this.email, this.id);
+}
+
+class StaffVerifyOtpForResetLoading extends AuthState {}
+
+class StaffVerifyOtpForResetSuccess extends AuthState {
+  final String email;
+  final String id;
+
+  StaffVerifyOtpForResetSuccess(this.email, this.id);
+}
+
+class StaffResetPasswordLoading extends AuthState {}
+
+class StaffResetPasswordSuccess extends AuthState {}

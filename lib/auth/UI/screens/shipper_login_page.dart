@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tdlogistic_v2/auth/bloc/auth_bloc.dart';
 import 'package:tdlogistic_v2/auth/bloc/auth_event.dart';
 import 'package:tdlogistic_v2/core/constant.dart';
+import 'package:tdlogistic_v2/auth/UI/screens/staff_forgot_password.dart';
 
 class StaffLoginPage extends StatefulWidget {
   final String msg;
@@ -15,12 +16,15 @@ class StaffLoginPage extends StatefulWidget {
   State<StaffLoginPage> createState() => _StaffLoginPageState();
 }
 
-class _StaffLoginPageState extends State<StaffLoginPage> {
+class _StaffLoginPageState extends State<StaffLoginPage> with TickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController(text: "");
   final TextEditingController _passwordController = TextEditingController(text: "");
   // final TextEditingController _usernameController = TextEditingController(text: "levodangkhoatg2497");
   // final TextEditingController _passwordController = TextEditingController(text: "xP7gPB");
   bool hidePass = true;
+  bool _isForgotPasswordHovered = false;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   void toggleHidePass(){
     setState(() {
@@ -35,6 +39,19 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
     if(widget.username != "") _usernameController.text = widget.username;
     if(widget.password != "") _passwordController.text = widget.password;
 
+    // Initialize pulse animation
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
+
     if (widget.msg != "") {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -43,6 +60,12 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
         ));
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   @override
@@ -157,6 +180,100 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
                         },
                         child: const Text('Đăng nhập'),
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _pulseAnimation.value,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _isForgotPasswordHovered
+                                  ? [
+                                      Colors.white.withOpacity(0.3),
+                                      Colors.white.withOpacity(0.2),
+                                    ]
+                                  : [
+                                      Colors.white.withOpacity(0.2),
+                                      Colors.white.withOpacity(0.1),
+                                    ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: _isForgotPasswordHovered 
+                                  ? Colors.white.withOpacity(0.5)
+                                  : Colors.white.withOpacity(0.3),
+                                width: _isForgotPasswordHovered ? 1.5 : 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(_isForgotPasswordHovered ? 0.15 : 0.1),
+                                  blurRadius: _isForgotPasswordHovered ? 12 : 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(25),
+                                onTap: () {
+                                  _pulseController.repeat();
+                                  Future.delayed(const Duration(milliseconds: 300), () {
+                                    _pulseController.stop();
+                                    _pulseController.reset();
+                                  });
+                                  
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const StaffForgotPasswordPage(),
+                                    ),
+                                  );
+                                },
+                                onHover: (isHovered) {
+                                  setState(() {
+                                    _isForgotPasswordHovered = isHovered;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        child: Icon(
+                                          Icons.lock_reset,
+                                          color: Colors.white,
+                                          size: _isForgotPasswordHovered ? 20 : 18,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      AnimatedDefaultTextStyle(
+                                        duration: const Duration(milliseconds: 200),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: _isForgotPasswordHovered ? 15 : 14,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: 0.5,
+                                        ),
+                                        child: const Text('Quên mật khẩu?'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 10),
                     SizedBox(

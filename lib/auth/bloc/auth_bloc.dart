@@ -9,6 +9,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository = AuthRepository();
+  final SecureStorageService secureStorageService = SecureStorageService();
 
   AuthBloc() : super(AuthInitial()) {
     on<SendOtpRequest>(_onSendOtpRequest);
@@ -21,6 +22,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ToStaff>(_toStaff);
     on<ToCustomer>(_toCus);
     on<StaffLoginRequest>(_onStaffLoginRequest);
+    on<StaffForgotPasswordRequest>(_onStaffForgotPasswordRequest);
+    on<StaffVerifyOtpForReset>(_onStaffVerifyOtpForReset);
+    on<StaffResetPassword>(_onStaffResetPassword);
   }
 
   Future<void> _startApp(StartApp event, Emitter<AuthState> emit) async {
@@ -135,6 +139,65 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _toCus(ToCustomer event, Emitter<AuthState> emit) async {
     emit(Unauthenticated("", "", "", false));
+  }
+
+  Future<void> _onStaffForgotPasswordRequest(
+      StaffForgotPasswordRequest event, Emitter<AuthState> emit) async {
+    try {
+      emit(VerifyingOtp());
+      // print("Đang gửi OTP reset password cho staff: ${event.username}, ${event.email}, ${event.phone}");
+      dynamic otpSent = await authRepository.sendOTPStaf(event.email);
+      // print(otpSent);
+      if (otpSent["success"]) {
+        emit(StaffForgotPasswordSuccess(event.email, otpSent["id"]));
+      } else {
+        emit(AuthFailure(
+            'Sai thông tin tài khoản', event.email, "", true));
+      }
+    } catch (error) {
+      // emit(AuthFailure('Lỗi: $error', event.username, "", true));
+    }
+  }
+
+  Future<void> _onStaffVerifyOtpForReset(
+      StaffVerifyOtpForReset event, Emitter<AuthState> emit) async {
+    try {
+      emit(VerifyingOtp());
+      print("Đang xác minh OTP reset password: ${event.id}, ${event.otp}");
+      dynamic result = await authRepository.otpVerification(event.id, event.otp, isStaff: true);
+      await secureStorageService.saveToken(result["token"]);
+      if (result["success"]) {
+        emit(StaffVerifyOtpForResetSuccess(event.email, event.id));
+      } else {
+        // emit(StaffForgotPasswordSuccess(event.username, event.email, event.phone, event.id));
+      }
+    } catch (error) {
+      emit(AuthFailure('Lỗi: $error', event.email, "", true));
+      print('Lỗi auth: $error');
+    }
+  }
+
+  Future<void> _onStaffResetPassword(
+      StaffResetPassword event, Emitter<AuthState> emit) async {
+    try {
+      emit(VerifyingOtp());
+      
+      if (event.newPassword != event.confirmPassword) {
+        emit(AuthFailure('Mật khẩu xác nhận không khớp', event.email, "", true));
+        return;
+      }
+
+      dynamic result = await authRepository.updatePassword(
+        (await secureStorageService.getToken())!,
+        event.id,
+        event.newPassword
+      );
+      
+      // Temporary success for now
+      emit(StaffResetPasswordSuccess());
+    } catch (error) {
+      emit(AuthFailure('Lỗi: $error', event.email, "", true));
+    }
   }
 }
 

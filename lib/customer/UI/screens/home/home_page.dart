@@ -657,26 +657,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             mainAxisSpacing: 15,
             crossAxisSpacing: 15,
             children: List.generate(6, (index) {
-              List<String> featureIcons = [
-                'lib/assets/feature1.png',
-                'lib/assets/feature1.png',
-                'lib/assets/feature1.png',
-                'lib/assets/feature1.png',
-                'lib/assets/feature1.png',
-                'lib/assets/feature1.png',
+              // Dữ liệu cho các thẻ tính năng với icon
+              final features = [
+                {
+                  'icon': Icons.add_box_outlined,
+                  'name': context.tr('home.feature1')
+                },
+                {
+                  'icon': Icons.history_outlined,
+                  'name': context.tr('home.feature2')
+                },
+                {
+                  'icon': Icons.location_on_outlined,
+                  'name': context.tr('home.feature3')
+                },
+                {
+                  'icon': Icons.receipt_long_outlined,
+                  'name': context.tr('home.feature4')
+                },
+                {
+                  'icon': Icons.help_outline,
+                  'name': context.tr('home.feature5')
+                },
+                {
+                  'icon': Icons.calculate_outlined,
+                  'name': context.tr('home.feature6')
+                },
               ];
-
-              List<String> featureNames = [
-                context.tr('home.feature1'),
-                context.tr('home.feature2'),
-                context.tr('home.feature3'),
-                context.tr('home.feature4'),
-                context.tr('home.feature5'),
-                context.tr('home.feature6'),
-              ];
-
               return _buildFeatureCard(
-                  index, featureIcons[index], featureNames[index]);
+                  index,
+                  features[index]['icon'] as IconData,
+                  features[index]['name'] as String);
             }),
           ),
         ],
@@ -719,7 +730,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  Widget _buildFeatureCard(int index, String iconPath, String featureName) {
+  Widget _buildFeatureCard(int index, IconData icon, String featureName) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -766,17 +777,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       color: mainColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Image.asset(
-                      iconPath,
-                      width: iconSize,
-                      height: iconSize,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.business_center,
-                          size: iconSize,
-                          color: mainColor,
-                        );
-                      },
+                    child: Icon(
+                      icon,
+                      color: mainColor,
+                      size: iconSize,
                     ),
                   ),
                   SizedBox(height: padding / 2),

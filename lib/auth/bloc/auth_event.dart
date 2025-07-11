@@ -45,3 +45,32 @@ class UpdateInfo extends AuthEvent{
 
   UpdateInfo({this.email, this.fName, this.lName});
 }
+
+class StaffForgotPasswordRequest extends AuthEvent {
+  // final String username;
+  final String email;
+  // final String phone;
+
+  StaffForgotPasswordRequest(
+    // this.username, 
+    this.email
+    // , this.phone
+    );
+}
+
+class StaffVerifyOtpForReset extends AuthEvent {
+  final String email;
+  final String otp;
+  final String id;
+
+  StaffVerifyOtpForReset(this.email, this.otp, this.id);
+}
+
+class StaffResetPassword extends AuthEvent {
+  final String id;
+  final String email;
+  final String newPassword;
+  final String confirmPassword;
+
+  StaffResetPassword(this.id, this.email, this.newPassword, this.confirmPassword);
+}

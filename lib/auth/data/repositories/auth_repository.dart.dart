@@ -40,8 +40,10 @@ class AuthRepository {
     return {"success": false, "id": null};
   }
 
-  Future<dynamic> otpVerification(String id, String otp) async {
-    final url = Uri.parse('$baseUrl/auth/otp/verify');
+  Future<dynamic> otpVerification(String id, String otp,
+      {bool isStaff = false}) async {
+    final url = Uri.parse(
+        '$baseUrl/auth/${isStaff ? 'staff/otp/verify' : 'otp/verify'}');
     final headers = {'Content-Type': 'application/json'};
     final response = await http.post(
       url,
@@ -84,6 +86,35 @@ class AuthRepository {
     };
   }
 
+  Future<Map<String, dynamic>> sendOTPStaf(String email) async {
+    try {
+      final url = Uri.parse('$baseUrl/auth/staff/forgetPassword');
+      print(url);
+      final headers = {'Content-Type': 'application/json'};
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode({
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+
+        if (responseData["success"] == true) {
+          return {"success": true, "id": responseData["data"]["id"]};
+        }
+      } else {
+        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
+      }
+    } catch (error) {
+      print("Exception: $error");
+    }
+    return {"success": false, "id": null};
+  }
+
   Future<User?> getUser(String token) async {
     try {
       Uri url = Uri.parse('$baseUrl/customer/');
@@ -95,7 +126,7 @@ class AuthRepository {
         url = Uri.parse('$baseUrl/staff/');
         response =
             await http.get(url, headers: {"authorization": "Bearer $token"});
-            print(response.body);
+        print(response.body);
       }
       responseData = jsonDecode(response.body);
       final user = User.fromJson(responseData["data"]);
@@ -128,6 +159,7 @@ class AuthRepository {
       }),
     );
 
+    print(response.body);
     // Lấy giá trị của trường 'set-cookie'
     String? setCookie = response.headers['set-cookie'];
 
@@ -165,7 +197,7 @@ class AuthRepository {
       final url = Uri.parse('$baseUrl/customer/update');
       final headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token' 
+        'Authorization': 'Bearer $token'
       };
 
       Map<String, dynamic> body = {};
@@ -196,6 +228,47 @@ class AuthRepository {
         return {
           "success": false,
           "message": "Cập nhật thông tin thất bại!",
+          "data": null
+        };
+      }
+    } catch (error) {
+      return {
+        "success": false,
+        "message": "Lỗi update info: ${error.toString()}",
+        "data": null
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePassword(
+      String token, String id, String password) async {
+    try {
+      final url = Uri.parse('$baseUrl/auth/staff/updatePassword');
+      print(url);
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      };
+      print(headers);
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode({
+          "id": id,
+          "password": password,
+        }),
+      );
+      print(response.body);
+      if (response.statusCode >= 200 && response.statusCode <= 209) {
+        return {
+          "success": true,
+          "message": "Cập nhật mât khẩu thành công",
+          "data": json.decode(response.body)
+        };
+      } else {
+        return {
+          "success": false,
+          "message": "Cập nhật mât khẩu thất bại!",
           "data": null
         };
       }

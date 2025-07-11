@@ -7,6 +7,7 @@ import 'package:tdlogistic_v2/auth/UI/screens/customer_login_page.dart';
 import 'package:tdlogistic_v2/auth/UI/screens/home_page.dart';
 import 'package:tdlogistic_v2/auth/UI/screens/shipper_login_page.dart';
 import 'package:tdlogistic_v2/auth/UI/screens/splash_screen.dart';
+import 'package:tdlogistic_v2/auth/UI/screens/staff_reset_password.dart';
 import 'package:tdlogistic_v2/auth/bloc/auth_event.dart';
 import 'package:tdlogistic_v2/auth/bloc/auth_state.dart';
 import 'package:tdlogistic_v2/auth/data/models/user_model.dart';
@@ -225,9 +226,22 @@ class _MyAppState extends State<MyApp> {
             } else if (state is SentOtp) {
               return OtpVerificationPage(
                   email: state.email,
-                  phone: state.phone,
                   msg: state.msg,
                   id: state.id);
+            } else if (state is StaffForgotPasswordSuccess) {
+              return OtpVerificationPage(
+                email: state.email,
+                msg: "",
+                id: state.id,
+                isStaffReset: true,
+              );
+            } else if (state is StaffVerifyOtpForResetSuccess) {
+              return StaffResetPasswordPage(
+                email: state.email,
+                id: state.id,
+              );
+            } else if (state is StaffResetPasswordSuccess) {
+              return const StaffLoginPage(msg: "Đặt lại mật khẩu thành công!", username: "", password: "");
             } else if (state is AuthFailure) {
               return state.isStaff
                   ? StaffLoginPage(

@@ -64,57 +64,61 @@ class LocationTrackerService {
 
   Future<void> startLocationTracking(String token) async {
     print("start sending location");
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return Future.error('Location services are disabled.');
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return Future.error('Location permissions are denied');
+        }
+      }
 
-    // Define location settings with a distance filter of 10 meters
-    LocationSettings locationSettings = const LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter:
-          10, // Minimum distance (in meters) before getting a new update
-    );
+      if (permission == LocationPermission.deniedForever) {
+        return Future.error(
+            'Location permissions are permanently denied, we cannot request permissions.');
+      }
 
-    double curLat = 0;
-    double curLng = 0;
-    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position position) {
-        // Send the current position to the API every 10 seconds
-        Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
-          if (calculateDistance(
-              curLat, curLng, position.latitude, position.longitude)) {
-            curLat = position.latitude;
-            // curLat = 10.5417397;
-            // curLng = 107.2429976;
-            curLng = position.longitude;
-            try {
-              for (String taskIs in taskIds) {
-                await _sendLocationToAPI(curLat, curLng, taskIs, token);
-                // await sendLatLng(curLat, curLng, token);
+      // Define location settings with a distance filter of 10 meters
+      LocationSettings locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter:
+            10, // Minimum distance (in meters) before getting a new update
+      );
+
+      double curLat = 0;
+      double curLng = 0;
+      Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+        (Position position) {
+          // Send the current position to the API every 10 seconds
+          Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
+            if (calculateDistance(
+                curLat, curLng, position.latitude, position.longitude)) {
+              curLat = position.latitude;
+              // curLat = 10.5417397;
+              // curLng = 107.2429976;
+              curLng = position.longitude;
+              try {
+                for (String taskIs in taskIds) {
+                  await _sendLocationToAPI(curLat, curLng, taskIs, token);
+                  // await sendLatLng(curLat, curLng, token);
+                }
+              } catch (error) {
+                print("Lỗi khi gửi toạ độ: $error");
               }
-            } catch (error) {
-              print("Lỗi khi gửi toạ độ: $error");
             }
-          }
-          await _updateStatus(curLat, curLng, token);
-        });
-        Timer.periodic(const Duration(minutes: 5), (Timer timer) async {});
-      },
-    );
+            await _updateStatus(curLat, curLng, token);
+          });
+          Timer.periodic(const Duration(minutes: 5), (Timer timer) async {});
+        },
+      );
+    } catch (error) {
+      print("Lỗi khi gửi toạ độ: $error");
+    }
   }
 
   void addTask(String taskId) {
