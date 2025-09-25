@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import '../../../core/signaling.dart';
+// import 'package:flutter_webrtc/flutter_webrtc.dart';
+// import '../../../core/signaling.dart';
 
 class MapWidget extends StatefulWidget {
   const MapWidget({super.key});
@@ -13,9 +13,9 @@ class _MapWidgetState extends State<MapWidget> {
   List<String> role = ["Caller", "Receiver"];
   int roleNum = 0;
   bool openAudio = true;
-  Signaling signaling = Signaling();
-  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  // Signaling signaling = Signaling();
+  // final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  // final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   String? roomId;
   TextEditingController textEditingController = TextEditingController(text: '');
   TextEditingController messageController = TextEditingController();
@@ -26,55 +26,55 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   void initState() {
     super.initState();
-    _localRenderer.initialize();
-    _remoteRenderer.initialize();
+    // _localRenderer.initialize();
+    // _remoteRenderer.initialize();
 
-    signaling.onAddRemoteStream = ((stream) {
-      setState(() {
-        _remoteRenderer.srcObject = stream;
-      });
-    });
+    // signaling.onAddRemoteStream = ((stream) {
+    //   setState(() {
+    //     _remoteRenderer.srcObject = stream;
+    //   });
+    // });
 
-    signaling.onMessageReceived = (message) {
-      setState(() {
-        messages.add(message);
-      });
-    };
+    // signaling.onMessageReceived = (message) {
+    //   setState(() {
+    //     messages.add(message);
+    //   });
+    // };
 
-    signaling.onUserJoined = () {
-      setState(() {
-        userJoined = true;
-        print("Someone entered the room");
-      });
-    };
+    // signaling.onUserJoined = () {
+    //   setState(() {
+    //     userJoined = true;
+    //     print("Someone entered the room");
+    //   });
+    // };
 
-    signaling.onSpeakingDetected = (isUserSpeaking) {
-      setState(() {
-        isSpeaking = isUserSpeaking;
-      });
-    };
+    // signaling.onSpeakingDetected = (isUserSpeaking) {
+    //   setState(() {
+    //     isSpeaking = isUserSpeaking;
+    //   });
+    // };
   }
 
   @override
   void dispose() {
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
+    // _localRenderer.dispose();
+    // _remoteRenderer.dispose();
     super.dispose();
   }
 
   void startDetectingSpeech() {
-    Future.delayed(const Duration(seconds: 1), () {
-      signaling.detectSpeaking();
-      startDetectingSpeech();
-      print("checking");
-    });
+    // Future.delayed(const Duration(seconds: 1), () {
+    //   signaling.detectSpeaking();
+    //   startDetectingSpeech();
+    //   print("checking");
+    // });
   }
 
   void sendMessage() {
-    if (roomId != null && messageController.text.isNotEmpty) {
-      signaling.sendMessage(roomId!, messageController.text, role[roleNum]);
-      messageController.clear();
-    }
+    // if (roomId != null && messageController.text.isNotEmpty) {
+    //   signaling.sendMessage(roomId!, messageController.text, role[roleNum]);
+    //   messageController.clear();
+    // }
   }
 
   @override
