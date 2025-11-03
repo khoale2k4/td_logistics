@@ -31,11 +31,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     emailController = TextEditingController(text: widget.user.email);
   }
   
-  void handleChangeAvatar() {
-    print("Changing avatar");
-    // TODO: Thêm logic chọn ảnh từ thư viện/camera
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,27 +59,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
           padding: const EdgeInsets.all(30.0),
           child: Column(
             children: [
-              GestureDetector(
-                onTap: handleChangeAvatar,
-                child: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundImage: const AssetImage("lib/assets/avt.jpg"), // Ảnh đại diện hiện tại
-                      backgroundColor: Colors.grey[200],
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage: const AssetImage("lib/assets/avt.jpg"), // Ảnh đại diện hiện tại
+                    backgroundColor: Colors.grey[200],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: mainColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: mainColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                    )
-                  ],
-                ),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                  )
+                ],
               ),
               const SizedBox(height: 30),
               buildFieldText(context, context.tr("user_info.lastName"), firstNameController),

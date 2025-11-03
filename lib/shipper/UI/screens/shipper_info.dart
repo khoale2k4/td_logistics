@@ -32,10 +32,6 @@ class _ShipperInforState extends State<ShipperInfor> {
     context.read<AuthBloc>().add(LogoutRequested());
   }
 
-  void handleChangeAvatar() {
-    print("Changing avatar");
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,26 +91,23 @@ class _ShipperInforState extends State<ShipperInfor> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Avatar Section
-              GestureDetector(
-                onTap: handleChangeAvatar,
-                child: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      radius: 55,
-                      backgroundColor: Colors.grey[300],
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: const AssetImage("lib/assets/avt.jpg"),
-                      ),
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 55,
+                    backgroundColor: Colors.grey[300],
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: const AssetImage("lib/assets/avt.jpg"),
                     ),
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 18,
-                      child: const Icon(Icons.camera_alt, color: Colors.black, size: 20),
-                    ),
-                  ],
-                ),
+                  ),
+                  CircleAvatar(
+                    backgroundColor: Colors.white,
+                    radius: 18,
+                    child: const Icon(Icons.camera_alt, color: Colors.black, size: 20),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 
